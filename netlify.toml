@@ -1,0 +1,36 @@
+[build]
+  publish = "dist"
+  command = "npm run build"
+  functions = "netlify/functions"
+
+# Netlify Functions API rewrites
+[[redirects]]
+  from = "/api/chat/stream"
+  to = "/.netlify/functions/chat-stream"
+  status = 200
+
+[[redirects]]
+  from = "/api/chat/title"
+  to = "/.netlify/functions/chat-title"
+  status = 200
+
+[[redirects]]
+  from = "/api/chat/tts"
+  to = "/.netlify/functions/chat-tts"
+  status = 200
+
+[[redirects]]
+  from = "/api/image/generate"
+  to = "/.netlify/functions/image-generate"
+  status = 200
+
+[[redirects]]
+  from = "/api/image/edit"
+  to = "/.netlify/functions/image-edit"
+  status = 200
+
+# SPA fallback for all frontend views
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
