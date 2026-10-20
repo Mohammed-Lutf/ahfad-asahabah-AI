@@ -84,11 +84,33 @@ export default async (req: Request) => {
       config.tools = [{ googleSearch: {} }];
     }
 
-    const responseStream = await ai.models.generateContentStream({
-      model: "gemini-3.8-flash",
-      contents: formattedContents,
-      config,
-    });
+    const candidateModels = [
+      "gemini-3.8-flash",
+      "gemini-2.5-flash",
+      "gemini-2.0-flash",
+    ];
+
+    let responseStream: any = null;
+    let streamError: any = null;
+
+    for (const modelName of candidateModels) {
+      try {
+        responseStream = await ai.models.generateContentStream({
+          model: modelName,
+          contents: formattedContents,
+          config,
+        });
+        break;
+      } catch (err: any) {
+        streamError = err;
+        console.warn(`Model ${modelName} returned error, trying fallback...`, err?.message);
+      }
+    }
+
+    if (!responseStream) {
+      throw streamError || new Error("الخدمة مشغولة مؤقتاً، يرجى المحاولة بعد ثوانٍ.");
+    }
+
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
