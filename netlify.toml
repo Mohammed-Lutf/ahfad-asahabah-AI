@@ -20,6 +20,12 @@
   status = 200
 
 [[redirects]]
+  from = "/api/chat/transcribe"
+  to = "/.netlify/functions/chat-transcribe"
+  status = 200
+
+
+[[redirects]]
   from = "/api/image/generate"
   to = "/.netlify/functions/image-generate"
   status = 200
