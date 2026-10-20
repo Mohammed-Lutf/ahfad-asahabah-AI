@@ -721,6 +721,10 @@ export default function App() {
             <span className="text-base font-bold tracking-tight whitespace-nowrap shrink-0">
               نُور AI
             </span>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[11px] text-emerald-400 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Gemini 3.8 Flash</span>
+            </div>
           </div>
 
           {/* Zone 2: Concise Navigation / Mode Links */}

@@ -78,12 +78,20 @@ export default async (req: Request) => {
       },
     });
   } catch (error: any) {
+    const rawMsg = error?.message || "";
+    let friendlyMsg = "حدث خطأ أثناء توليد الصورة.";
+    if (rawMsg.includes("limit: 0") || rawMsg.includes("RESOURCE_EXHAUSTED") || rawMsg.includes("quota")) {
+      friendlyMsg =
+        "تنبيه: توليد الصور بالذكاء الاصطناعي يتطلب تفعيل خطة الفوترة (Pay-as-you-go) في حساب Google AI Studio، لأن جوجل تحدد الحصة المجانية لنماذج الصور بـ 0. بينما المحادثة النصية مجانية بالكامل.";
+    }
+
     return new Response(
       JSON.stringify({
-        error: error?.message || "حدث خطأ أثناء توليد الصورة.",
+        error: friendlyMsg,
+        details: rawMsg,
       }),
       {
-        status: 500,
+        status: 429,
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",

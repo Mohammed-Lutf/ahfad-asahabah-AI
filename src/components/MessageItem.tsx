@@ -225,6 +225,9 @@ export const MessageItem: React.FC<MessageItemProps> = ({
           >
             نُور
           </span>
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+            Gemini 3.8 Flash
+          </span>
           <span aria-hidden="true">·</span>
           <span className="tabular-nums text-[11px] text-slate-500">
             {formattedTime}
