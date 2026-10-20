@@ -314,7 +314,7 @@ async function startServer() {
       let friendlyMsg = "حدث خطأ أثناء توليد الصورة.";
       if (rawMsg.includes("limit: 0") || rawMsg.includes("RESOURCE_EXHAUSTED") || rawMsg.includes("quota")) {
         friendlyMsg =
-          "تنبيه: توليد الصور بالذكاء الاصطناعي يتطلب تفعيل خطة الفوترة (Pay-as-you-go) في حساب Google AI Studio، لأن جوجل تحدد الحصة المجانية لنماذج الصور بـ 0. بينما المحادثة النصية مجانية بالكامل.";
+          "المميزة تحتاج الى اشتراك مدفوع وهي قيد التطوير .. يمكنك التواصل مع المطور والمساهمة في تفعيلها ..";
       }
       res.status(429).json({
         error: friendlyMsg,
@@ -376,8 +376,15 @@ async function startServer() {
       res.json({ imageUrl, textDescription });
     } catch (error: any) {
       console.error("Image Edit Error:", error);
-      res.status(500).json({
-        error: error?.message || "حدث خطأ أثناء تعديل الصورة.",
+      const rawMsg = error?.message || "";
+      let friendlyMsg = "حدث خطأ أثناء تعديل الصورة.";
+      if (rawMsg.includes("limit: 0") || rawMsg.includes("RESOURCE_EXHAUSTED") || rawMsg.includes("quota")) {
+        friendlyMsg =
+          "المميزة تحتاج الى اشتراك مدفوع وهي قيد التطوير .. يمكنك التواصل مع المطور والمساهمة في تفعيلها ..";
+      }
+      res.status(429).json({
+        error: friendlyMsg,
+        details: rawMsg,
       });
     }
   });

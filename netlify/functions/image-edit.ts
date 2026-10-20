@@ -87,12 +87,20 @@ export default async (req: Request) => {
       },
     });
   } catch (error: any) {
+    const rawMsg = error?.message || "";
+    let friendlyMsg = "حدث خطأ أثناء تعديل الصورة.";
+    if (rawMsg.includes("limit: 0") || rawMsg.includes("RESOURCE_EXHAUSTED") || rawMsg.includes("quota")) {
+      friendlyMsg =
+        "المميزة تحتاج الى اشتراك مدفوع وهي قيد التطوير .. يمكنك التواصل مع المطور والمساهمة في تفعيلها ..";
+    }
+
     return new Response(
       JSON.stringify({
-        error: error?.message || "حدث خطأ أثناء تعديل الصورة.",
+        error: friendlyMsg,
+        details: rawMsg,
       }),
       {
-        status: 500,
+        status: 429,
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",

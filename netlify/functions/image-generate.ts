@@ -82,7 +82,7 @@ export default async (req: Request) => {
     let friendlyMsg = "حدث خطأ أثناء توليد الصورة.";
     if (rawMsg.includes("limit: 0") || rawMsg.includes("RESOURCE_EXHAUSTED") || rawMsg.includes("quota")) {
       friendlyMsg =
-        "تنبيه: توليد الصور بالذكاء الاصطناعي يتطلب تفعيل خطة الفوترة (Pay-as-you-go) في حساب Google AI Studio، لأن جوجل تحدد الحصة المجانية لنماذج الصور بـ 0. بينما المحادثة النصية مجانية بالكامل.";
+        "المميزة تحتاج الى اشتراك مدفوع وهي قيد التطوير .. يمكنك التواصل مع المطور والمساهمة في تفعيلها ..";
     }
 
     return new Response(

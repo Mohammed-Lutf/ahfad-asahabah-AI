@@ -38,6 +38,23 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
   const [editPrompt, setEditPrompt] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const SUBSCRIPTION_REQUIRED_MSG =
+    "الميزة تحتاج الى اشتراك مدفوع وهي قيد التطوير .. يمكنك التواصل مع المطور والمساهمة في تفعيلها ..";
+
+  const getCleanErrorMessage = (err: any) => {
+    const raw = typeof err === "string" ? err : err?.message || "";
+    if (
+      raw.includes("limit: 0") ||
+      raw.includes("RESOURCE_EXHAUSTED") ||
+      raw.includes("quota") ||
+      raw.includes("429") ||
+      raw.includes("اشتراك")
+    ) {
+      return SUBSCRIPTION_REQUIRED_MSG;
+    }
+    return raw || "حدث خطأ أثناء معالجة الصورة.";
+  };
+
   const handleGenerate = async () => {
     if (!prompt.trim() || loading) return;
     setLoading(true);
@@ -57,7 +74,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
       setGeneratedImage(data.imageUrl);
       if (data.textDescription) setTextDescription(data.textDescription);
     } catch (err: any) {
-      setErrorMsg(err.message || "حدث خطأ أثناء محاولة توليد الصورة.");
+      setErrorMsg(getCleanErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -86,7 +103,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
       setGeneratedImage(data.imageUrl);
       if (data.textDescription) setTextDescription(data.textDescription);
     } catch (err: any) {
-      setErrorMsg(err.message || "حدث خطأ أثناء محاولة تعديل الصورة.");
+      setErrorMsg(getCleanErrorMessage(err));
     } finally {
       setLoading(false);
     }
