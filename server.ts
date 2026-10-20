@@ -101,23 +101,36 @@ async function startServer() {
       let responseStream: any = null;
       let streamError: any = null;
 
-      for (const modelName of candidateModels) {
-        try {
-          responseStream = await ai.models.generateContentStream({
-            model: modelName,
-            contents: formattedContents,
-            config,
-          });
-          break;
-        } catch (err: any) {
-          streamError = err;
-          console.warn(`Model ${modelName} returned error, trying fallback...`, err?.message);
+      async function attemptStream(currentConfig: any) {
+        for (const modelName of candidateModels) {
+          try {
+            return await ai.models.generateContentStream({
+              model: modelName,
+              contents: formattedContents,
+              config: currentConfig,
+            });
+          } catch (err: any) {
+            streamError = err;
+            console.warn(`Model ${modelName} failed:`, err?.message);
+          }
         }
+        return null;
+      }
+
+      responseStream = await attemptStream(config);
+
+      // If failed and web search was requested, retry without googleSearch tool (e.g. 429 quota on search)
+      if (!responseStream && useWebSearch) {
+        console.warn("Retrying without googleSearch tool due to quota/error...");
+        const fallbackConfig = { ...config };
+        delete fallbackConfig.tools;
+        responseStream = await attemptStream(fallbackConfig);
       }
 
       if (!responseStream) {
         throw streamError || new Error("الخدمة مشغولة مؤقتاً، يرجى المحاولة بعد ثوانٍ.");
       }
+
 
 
       for await (const chunk of responseStream) {
