@@ -91,72 +91,75 @@ async function startServer() {
       }
 
       const candidateModels = [
-        "gemini-3.8-flash",
-        "gemini-3.7-flash",
-        "gemini-3.5-flash",
         "gemini-2.5-flash",
         "gemini-flash-latest",
+        "gemini-3.5-flash",
+        "gemini-3.7-flash",
+        "gemini-3.8-flash",
       ];
 
-      let responseStream: any = null;
-      let streamError: any = null;
+      let sentAnyData = false;
 
-      async function attemptStream(currentConfig: any) {
+      const configsToTry = [config];
+      if (useWebSearch) {
+        const cfgNoTools = { ...config };
+        delete cfgNoTools.tools;
+        configsToTry.push(cfgNoTools);
+      }
+
+      for (const cfg of configsToTry) {
+        if (sentAnyData) break;
         for (const modelName of candidateModels) {
           try {
-            return await ai.models.generateContentStream({
+            const activeStream = await ai.models.generateContentStream({
               model: modelName,
               contents: formattedContents,
-              config: currentConfig,
+              config: cfg,
             });
+
+            for await (const chunk of activeStream) {
+              const text = chunk.text || "";
+              const groundingChunks =
+                chunk.candidates?.[0]?.groundingMetadata?.groundingChunks;
+
+              let sources: { title: string; uri: string }[] = [];
+              if (groundingChunks && Array.isArray(groundingChunks)) {
+                sources = groundingChunks
+                  .map((gc: any) => gc.web)
+                  .filter((w: any) => w && w.uri)
+                  .map((w: any) => ({
+                    title: w.title || w.uri,
+                    uri: w.uri,
+                  }));
+              }
+
+              if (text || sources.length > 0) {
+                sentAnyData = true;
+                const payload = JSON.stringify({
+                  text,
+                  sources: sources.length > 0 ? sources : undefined,
+                });
+                res.write(`data: ${payload}\n\n`);
+              }
+            }
+
+            if (sentAnyData) break;
           } catch (err: any) {
-            streamError = err;
-            console.warn(`Model ${modelName} failed:`, err?.message);
+            console.warn(`Model ${modelName} stream failed:`, err?.message);
+            if (sentAnyData) break;
           }
         }
-        return null;
       }
 
-      responseStream = await attemptStream(config);
-
-      // If failed and web search was requested, retry without googleSearch tool (e.g. 429 quota on search)
-      if (!responseStream && useWebSearch) {
-        console.warn("Retrying without googleSearch tool due to quota/error...");
-        const fallbackConfig = { ...config };
-        delete fallbackConfig.tools;
-        responseStream = await attemptStream(fallbackConfig);
+      if (!sentAnyData) {
+        res.write(
+          `data: ${JSON.stringify({
+            error: "الخدمة مشغولة مؤقتاً، يرجى المحاولة بعد لحظات.",
+          })}\n\n`
+        );
+      } else {
+        res.write(`data: [DONE]\n\n`);
       }
-
-      if (!responseStream) {
-        throw streamError || new Error("الخدمة مشغولة مؤقتاً، يرجى المحاولة بعد ثوانٍ.");
-      }
-
-
-
-      for await (const chunk of responseStream) {
-        const text = chunk.text || "";
-        const groundingChunks =
-          chunk.candidates?.[0]?.groundingMetadata?.groundingChunks;
-
-        let sources: { title: string; uri: string }[] = [];
-        if (groundingChunks && Array.isArray(groundingChunks)) {
-          sources = groundingChunks
-            .map((gc: any) => gc.web)
-            .filter((w: any) => w && w.uri)
-            .map((w: any) => ({
-              title: w.title || w.uri,
-              uri: w.uri,
-            }));
-        }
-
-        const payload = JSON.stringify({
-          text,
-          sources: sources.length > 0 ? sources : undefined,
-        });
-        res.write(`data: ${payload}\n\n`);
-      }
-
-      res.write(`data: [DONE]\n\n`);
       res.end();
     } catch (error: any) {
       console.error("Chat Stream Error:", error);

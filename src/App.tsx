@@ -301,48 +301,59 @@ export default function App() {
           const dataStr = line.replace(/^data:\s*/, "");
           if (dataStr === "[DONE]") break;
 
+          let parsed: any = null;
           try {
-            const parsed = JSON.parse(dataStr);
-            if (parsed.error) {
-              throw new Error(parsed.error);
+            parsed = JSON.parse(dataStr);
+          } catch {
+            // Ignore incomplete segment from chunk split
+            continue;
+          }
+
+          if (parsed?.error) {
+            let errorText = parsed.error;
+            try {
+              const nested = JSON.parse(errorText);
+              if (nested?.error?.message) {
+                errorText = nested.error.message;
+              }
+            } catch {
+              // Not nested JSON
             }
-            if (parsed.text) {
-              accumulatedText += parsed.text;
-            }
-            if (parsed.sources && Array.isArray(parsed.sources)) {
-              for (const src of parsed.sources) {
-                if (!accumulatedSources.some((s) => s.uri === src.uri)) {
-                  accumulatedSources.push(src);
-                }
+            throw new Error(errorText);
+          }
+
+          if (parsed?.text) {
+            accumulatedText += parsed.text;
+          }
+          if (parsed?.sources && Array.isArray(parsed.sources)) {
+            for (const src of parsed.sources) {
+              if (!accumulatedSources.some((s) => s.uri === src.uri)) {
+                accumulatedSources.push(src);
               }
             }
-
-            setConversations((prev) =>
-              prev.map((c) =>
-                c.id === convId
-                  ? {
-                      ...c,
-                      messages: c.messages.map((m) =>
-                        m.id === assistantMsgId
-                          ? {
-                              ...m,
-                              content: accumulatedText,
-                              sources:
-                                accumulatedSources.length > 0
-                                  ? accumulatedSources
-                                  : undefined,
-                            }
-                          : m
-                      ),
-                    }
-                  : c
-              )
-            );
-          } catch (err: any) {
-            if (err.message && err.message !== "Unexpected end of JSON input") {
-              throw err;
-            }
           }
+
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.id === convId
+                ? {
+                    ...c,
+                    messages: c.messages.map((m) =>
+                      m.id === assistantMsgId
+                        ? {
+                            ...m,
+                            content: accumulatedText,
+                            sources:
+                              accumulatedSources.length > 0
+                                ? accumulatedSources
+                                : undefined,
+                          }
+                        : m
+                    ),
+                  }
+                : c
+            )
+          );
         }
       }
     } catch (error: any) {

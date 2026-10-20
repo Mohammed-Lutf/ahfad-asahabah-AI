@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Check, Copy, Terminal } from "lucide-react";
+import { Check, Copy, Download, Terminal } from "lucide-react";
 
 interface MarkdownRendererProps {
   content: string;
@@ -136,8 +136,46 @@ interface CodeBlockProps {
   value: string;
 }
 
+const EXTENSION_MAP: Record<string, string> = {
+  html: "html",
+  htm: "html",
+  json: "json",
+  css: "css",
+  javascript: "js",
+  js: "js",
+  typescript: "ts",
+  ts: "ts",
+  tsx: "tsx",
+  jsx: "jsx",
+  python: "py",
+  py: "py",
+  markdown: "md",
+  md: "md",
+  sql: "sql",
+  bash: "sh",
+  sh: "sh",
+  shell: "sh",
+  xml: "xml",
+  yaml: "yaml",
+  yml: "yaml",
+  php: "php",
+  cpp: "cpp",
+  c: "c",
+  cs: "cs",
+  java: "java",
+  rust: "rs",
+  go: "go",
+  svg: "svg",
+  text: "txt",
+  txt: "txt",
+};
+
 const CodeBlock: React.FC<CodeBlockProps> = ({ language, value }) => {
   const [copied, setCopied] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
+
+  const cleanLang = (language || "code").toLowerCase();
+  const fileExt = EXTENSION_MAP[cleanLang] || cleanLang || "txt";
 
   const handleCopy = async () => {
     try {
@@ -149,6 +187,25 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ language, value }) => {
     }
   };
 
+  const handleDownload = () => {
+    try {
+      const filename = `code-${Date.now()}.${fileExt}`;
+      const blob = new Blob([value], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setDownloaded(true);
+      setTimeout(() => setDownloaded(false), 2000);
+    } catch {
+      // Ignore download failure
+    }
+  };
+
   return (
     <div
       dir="ltr"
@@ -157,28 +214,51 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ language, value }) => {
       <div className="flex items-center justify-between px-4 py-2 bg-[#111723] border-b border-slate-800/80 text-xs text-slate-400 font-mono">
         <div className="flex items-center gap-2">
           <Terminal className="w-3.5 h-3.5 text-emerald-400" />
-          <span className="lowercase">{language}</span>
+          <span className="lowercase font-semibold text-slate-300">
+            {language}
+          </span>
+          <span className="text-[10px] text-slate-500 font-sans">
+            (.{fileExt})
+          </span>
         </div>
-        <button
-          type="button"
-          onClick={handleCopy}
-          className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-slate-800 text-slate-300 hover:text-white transition-colors whitespace-nowrap shrink-0"
-          title="نسخ الكود"
-        >
-          {copied ? (
-            <>
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-[11px] font-sans text-emerald-400">
-                تم النسخ
-              </span>
-            </>
-          ) : (
-            <>
-              <Copy className="w-3.5 h-3.5" />
-              <span className="text-[11px] font-sans">نسخ الكود</span>
-            </>
-          )}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={handleDownload}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-emerald-400 transition-colors whitespace-nowrap shrink-0 text-[11px] font-sans"
+            title={`تنزيل كملف .${fileExt}`}
+          >
+            {downloaded ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-emerald-400">تم التنزيل</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-3.5 h-3.5" />
+                <span>تنزيل .{fileExt}</span>
+              </>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition-colors whitespace-nowrap shrink-0 text-[11px] font-sans"
+            title="نسخ الكود"
+          >
+            {copied ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-emerald-400">تم النسخ</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5" />
+                <span>نسخ</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
       <pre className="p-4 text-[13px] leading-relaxed overflow-x-auto font-mono text-slate-200">
         <code>{value}</code>

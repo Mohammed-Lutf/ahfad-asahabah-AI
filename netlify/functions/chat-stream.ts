@@ -85,83 +85,78 @@ export default async (req: Request) => {
     }
 
     const candidateModels = [
-      "gemini-3.8-flash",
-      "gemini-3.7-flash",
-      "gemini-3.5-flash",
       "gemini-2.5-flash",
       "gemini-flash-latest",
+      "gemini-3.5-flash",
+      "gemini-3.7-flash",
+      "gemini-3.8-flash",
     ];
-
-    let responseStream: any = null;
-    let streamError: any = null;
-
-    async function attemptStream(currentConfig: any) {
-      for (const modelName of candidateModels) {
-        try {
-          return await ai.models.generateContentStream({
-            model: modelName,
-            contents: formattedContents,
-            config: currentConfig,
-          });
-        } catch (err: any) {
-          streamError = err;
-          console.warn(`Model ${modelName} failed:`, err?.message);
-        }
-      }
-      return null;
-    }
-
-    responseStream = await attemptStream(config);
-
-    // If failed and web search was requested, retry without googleSearch tool (e.g. 429 quota on search)
-    if (!responseStream && useWebSearch) {
-      console.warn("Retrying without googleSearch tool due to quota/error...");
-      const fallbackConfig = { ...config };
-      delete fallbackConfig.tools;
-      responseStream = await attemptStream(fallbackConfig);
-    }
-
-    if (!responseStream) {
-      throw streamError || new Error("الخدمة مشغولة مؤقتاً، يرجى المحاولة بعد ثوانٍ.");
-    }
-
-
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
-        try {
-          for await (const chunk of responseStream) {
-            const text = chunk.text || "";
-            const groundingChunks =
-              chunk.candidates?.[0]?.groundingMetadata?.groundingChunks;
+        let sentAnyData = false;
 
-            let sources: { title: string; uri: string }[] = [];
-            if (groundingChunks && Array.isArray(groundingChunks)) {
-              sources = groundingChunks
-                .map((gc: any) => gc.web)
-                .filter((w: any) => w && w.uri)
-                .map((w: any) => ({
-                  title: w.title || w.uri,
-                  uri: w.uri,
-                }));
+        const configsToTry = [config];
+        if (useWebSearch) {
+          const cfgNoTools = { ...config };
+          delete cfgNoTools.tools;
+          configsToTry.push(cfgNoTools);
+        }
+
+        for (const cfg of configsToTry) {
+          if (sentAnyData) break;
+          for (const modelName of candidateModels) {
+            try {
+              const activeStream = await ai.models.generateContentStream({
+                model: modelName,
+                contents: formattedContents,
+                config: cfg,
+              });
+
+              for await (const chunk of activeStream) {
+                const text = chunk.text || "";
+                const groundingChunks =
+                  chunk.candidates?.[0]?.groundingMetadata?.groundingChunks;
+
+                let sources: { title: string; uri: string }[] = [];
+                if (groundingChunks && Array.isArray(groundingChunks)) {
+                  sources = groundingChunks
+                    .map((gc: any) => gc.web)
+                    .filter((w: any) => w && w.uri)
+                    .map((w: any) => ({
+                      title: w.title || w.uri,
+                      uri: w.uri,
+                    }));
+                }
+
+                if (text || sources.length > 0) {
+                  sentAnyData = true;
+                  const payload = JSON.stringify({
+                    text,
+                    sources: sources.length > 0 ? sources : undefined,
+                  });
+                  controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
+                }
+              }
+
+              if (sentAnyData) break;
+            } catch (err: any) {
+              console.warn(`Model ${modelName} stream failed:`, err?.message);
+              if (sentAnyData) break;
             }
-
-            const payload = JSON.stringify({
-              text,
-              sources: sources.length > 0 ? sources : undefined,
-            });
-            controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
           }
-          controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
-          controller.close();
-        } catch (err: any) {
+        }
+
+        if (!sentAnyData) {
           const errPayload = JSON.stringify({
-            error: err?.message || "حدث خطأ أثناء الاتصال بالخادم الذكي.",
+            error: "الخدمة مشغولة مؤقتاً، يرجى المحاولة بعد لحظات.",
           });
           controller.enqueue(encoder.encode(`data: ${errPayload}\n\n`));
-          controller.close();
+        } else {
+          controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
         }
+        controller.close();
       },
     });
 
