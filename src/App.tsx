@@ -774,12 +774,18 @@ export default function App() {
                 <PanelRightOpen className="w-4 h-4" />
               </button>
             )}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <span className="text-base font-bold tracking-tight whitespace-nowrap shrink-0 text-emerald-400">
                 أحفاد الصحابة AI
               </span>
-              <span className="text-xs text-slate-400 hidden sm:inline">
-                | ضياء
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-emerald-500/15 via-teal-500/20 to-emerald-500/15 border border-emerald-400/35 text-xs font-black text-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.25)]">
+                <Sparkles className="w-3 h-3 text-amber-300 animate-pulse" />
+                <span className="bg-gradient-to-r from-emerald-200 via-teal-100 to-emerald-300 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]">
+                  ضِيَاء
+                </span>
+                <span className="text-[10px] font-mono text-emerald-400/80 mr-0.5">
+                  AI
+                </span>
               </span>
             </div>
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[11px] text-emerald-400 font-medium">
@@ -895,18 +901,35 @@ export default function App() {
                 activeConversation.messages.length === 0 ? (
                   /* Empty State / Welcome Screen */
                   <div className="flex flex-col items-center justify-center min-h-[62vh] text-center px-4">
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-5">
-                      <Sparkles className="w-6 h-6" />
+                    {/* Luminous Radiant Badge */}
+                    <div className="relative mb-6">
+                      <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-emerald-500/20 via-teal-400/30 to-emerald-400/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300 shadow-[0_0_30px_rgba(52,211,153,0.4)] animate-pulse">
+                        <Sparkles className="w-8 h-8 text-emerald-300 drop-shadow-[0_0_10px_rgba(52,211,153,0.8)]" />
+                      </div>
+                      <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399]" />
                     </div>
 
                     <h1
-                      className="text-2xl sm:text-3xl font-bold tracking-tight mb-2.5"
+                      className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-3 flex flex-wrap items-center justify-center gap-2.5"
                       style={{ textWrap: "balance" }}
                     >
-                      أهلاً بك في منصة أحفاد الصحابة AI
+                      <span className="text-slate-100">أهلاً بك في منصة أحفاد الصحابة مع</span>
+                      <span className="relative inline-flex items-center gap-2 px-4 py-1.5 rounded-2xl bg-gradient-to-r from-emerald-500/20 via-teal-400/25 to-emerald-500/20 border border-emerald-400/50 shadow-[0_0_25px_rgba(52,211,153,0.35)] backdrop-blur-md">
+                        <Sparkles className="w-5 h-5 text-amber-300 animate-pulse shrink-0" />
+                        <span className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-emerald-200 via-teal-100 to-emerald-300 bg-clip-text text-transparent drop-shadow-[0_0_16px_rgba(52,211,153,0.9)] tracking-wide">
+                          «ضِيَـاء»
+                        </span>
+                        <span className="text-[11px] font-mono font-bold text-emerald-300 px-2 py-0.5 rounded-md bg-emerald-950/80 border border-emerald-400/40 uppercase tracking-wider shadow-inner">
+                          Diaa AI
+                        </span>
+                      </span>
                     </h1>
                     <p className="text-sm text-slate-400 max-w-lg mb-8 leading-relaxed">
-                      المساعد الذكي المتطور ضياء (Diaa AI) لمساعدتك في العمل على منصة أحفاد الصحابة AI، إدارة الحلقات وشؤون الطلاب، كتابة وتنزيل الأكواد، تحليل البيانات، وتوليد وتعديل الصور.
+                      المساعد الذكي المتطور{" "}
+                      <span className="font-extrabold text-emerald-300 drop-shadow-[0_0_10px_rgba(52,211,153,0.7)]">
+                        ضِيَاء
+                      </span>{" "}
+                      لمساعدتك في إدارة وتخطيط الحلقات والمراكز العلمية، شؤون الطلاب، كتابة وتنزيل الأكواد، وتحليل البيانات والصور.
                     </p>
 
                     {/* Actionable Feature Tiles */}

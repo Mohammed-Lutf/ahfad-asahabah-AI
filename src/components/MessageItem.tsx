@@ -219,11 +219,10 @@ export const MessageItem: React.FC<MessageItemProps> = ({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1 text-xs text-slate-400">
           <span
-            className={`font-semibold ${
-              isLightMode ? "text-slate-900" : "text-slate-200"
-            }`}
+            className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-teal-200 to-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)] inline-flex items-center gap-1"
           >
-            ضياء
+            <Sparkles className="w-3 h-3 text-amber-300 animate-pulse" />
+            <span>ضِيَاء</span>
           </span>
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
             Gemini 2.5 Flash
