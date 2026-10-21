@@ -425,7 +425,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
                   <button
                     type="button"
                     onClick={() =>
-                      downloadImage(generatedImage, "noor-ai-image")
+                      downloadImage(generatedImage, "diaa-ai-image")
                     }
                     className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition-colors"
                   >

@@ -29,7 +29,7 @@ async function startServer() {
 
   // Health check endpoint for cloud platforms (Render, Railway, etc.)
   app.get("/api/health", (_req, res) => {
-    res.json({ status: "ok", app: "Noor AI" });
+    res.json({ status: "ok", app: "Diaa AI" });
   });
 
   // Streaming Chat Endpoint
@@ -410,7 +410,7 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Noor AI Server running on http://localhost:${PORT}`);
+    console.log(`Diaa AI Server running on http://localhost:${PORT}`);
   });
 }
 

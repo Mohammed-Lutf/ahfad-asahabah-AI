@@ -1,5 +1,5 @@
 {
-  "name": "نُور (Noor AI) - المساعد الذكي المتقدم",
+  "name": "ضياء (Diaa AI) - منصة أحفاد الصحابة AI",
   "description": "مساعد محادثة ذكي متكامل يدعم المحادثات المتعددة، تحليل الصور والملفات، البحث الفوري عبر الويب، والقراءة الصوتية.",
   "requestFramePermissions": ["microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

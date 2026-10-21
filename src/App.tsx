@@ -24,21 +24,30 @@ import { Conversation, ThinkingMode, Attachment, PersonaPreset } from "./types";
 import { MessageItem } from "./components/MessageItem";
 import { ChatComposer } from "./components/ChatComposer";
 import { ImageStudio } from "./components/ImageStudio";
-import { NoorGame } from "./components/NoorGame";
+import { DiaaGame } from "./components/DiaaGame";
 import {
   getCompleteSystemInstruction,
   CORE_KNOWLEDGE,
 } from "./knowledge/systemKnowledge";
 
-const STORAGE_KEY = "noor_ai_conversations_v1";
+const STORAGE_KEY = "diaa_ai_conversations_v1";
+const LEGACY_STORAGE_KEY = "noor_ai_conversations_v1";
 
 const PERSONA_PRESETS: PersonaPreset[] = [
   {
     id: "default",
     name: "ضياء - المساعد الشامل",
-    description: "المساعد الذكي الرسمي لشركة Omni-Tech ومنصة أحفاد الصحابة AI",
+    description: "المساعد الذكي الرسمي لمنصة أحفاد الصحابة AI",
     instruction: getCompleteSystemInstruction(
-      "قدم إجابات شاملة، متوازنة، ودقيقة لكافة المهام اليومية والأسئلة العامة مع توضيح هويتك كـ ضياء من Omni-Tech."
+      "قدم إجابات شاملة، متوازنة، ودقيقة لكافة المهام اليومية والأسئلة العامة مع توضيح هويتك كـ ضياء."
+    ),
+  },
+  {
+    id: "quran_circles",
+    name: "ضياء - المستشار التربوي وإدارة الحلقات",
+    description: "تخطيط شؤون الحلقات القرآنية، شؤون الطلاب، والأنشطة والمسابقات الدعوية",
+    instruction: getCompleteSystemInstruction(
+      "أنت تعمل كمستشار تربوي وخبير في إدارة حلقات تحفيظ القرآن الكريم والأنشطة الطلابية والدعوية. ساعد المشرفين والمعلمين والطلاب في وضع الخطط، المناهج، الأنشطة، وتوزيع المهام القيادية وتحفيز الطلاب بناءً على المعايير المعتمدة لمنصة أحفاد الصحابة AI."
     ),
   },
   {
@@ -46,7 +55,7 @@ const PERSONA_PRESETS: PersonaPreset[] = [
     name: "ضياء - مهندس البرمجيات والمنصة",
     description: "العمل على المنصة وكتابة الأكواد وتصحيحها ومراجعة البنية الهندسية",
     instruction: getCompleteSystemInstruction(
-      "أنت تعمل كمهندس برمجيات ونظم خبير (Senior Staff Software Engineer) في شركة Omni-Tech لمساعدة المستخدمين في البرمجة والتطوير والعمل على المنصة. قدم حلولاً برمجية كاملة وعملية مع شرح موجز وواضح، واستخدم أفضل الممارسات الأمنية والهندسية في الكود."
+      "أنت تعمل كمهندس برمجيات ونظم خبير (Senior Staff Software Engineer) لمساعدة المستخدمين في البرمجة والتطوير والعمل على المنصة. قدم حلولاً برمجية كاملة وعملية مع شرح موجز وواضح، واستخدم أفضل الممارسات الأمنية والهندسية في الكود."
     ),
   },
   {
@@ -102,7 +111,9 @@ export default function App() {
   const [appView, setAppView] = useState<"chat" | "images" | "game">("chat");
   const [conversations, setConversations] = useState<Conversation[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved =
+        localStorage.getItem(STORAGE_KEY) ||
+        localStorage.getItem(LEGACY_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -672,7 +683,7 @@ export default function App() {
           >
             <div className="flex items-center gap-2.5">
               <Gamepad2 className="w-3.5 h-3.5 text-amber-400" />
-              <span>لعبة حارس نُور (Noor Guardian)</span>
+              <span>لعبة حارس ضياء (Diaa Guardian)</span>
             </div>
           </button>
 
@@ -743,7 +754,7 @@ export default function App() {
                 أحفاد الصحابة AI
               </span>
               <span className="text-xs text-slate-400 hidden sm:inline">
-                | ضياء (Omni-Tech)
+                | ضياء
               </span>
             </div>
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[11px] text-emerald-400 font-medium">
@@ -779,7 +790,7 @@ export default function App() {
                 appView === "game" ? "text-emerald-400 font-semibold" : "hover:text-emerald-400"
               }`}
             >
-              لعبة حارس نُور
+              لعبة حارس ضياء
             </button>
             <button
               type="button"
@@ -823,7 +834,7 @@ export default function App() {
           </div>
         </header>
 
-        {/* View Switcher: Chat vs ImageStudio vs NoorGame */}
+        {/* View Switcher: Chat vs ImageStudio vs DiaaGame */}
         {appView === "images" ? (
           <ImageStudio
             isLightMode={isLightMode}
@@ -846,7 +857,7 @@ export default function App() {
             }}
           />
         ) : appView === "game" ? (
-          <NoorGame
+          <DiaaGame
             onBackToChat={() => setAppView("chat")}
             isLightMode={isLightMode}
           />
@@ -870,7 +881,7 @@ export default function App() {
                       أهلاً بك في منصة أحفاد الصحابة AI
                     </h1>
                     <p className="text-sm text-slate-400 max-w-lg mb-8 leading-relaxed">
-                      المساعد الذكي المتطور ضياء (Diaa AI) من شركة Omni-Tech لمساعدتك في العمل على المنصة، كتابة وتنزيل الأكواد، تحليل البيانات، وتوليد وتعديل الصور.
+                      المساعد الذكي المتطور ضياء (Diaa AI) لمساعدتك في العمل على منصة أحفاد الصحابة AI، إدارة الحلقات وشؤون الطلاب، كتابة وتنزيل الأكواد، تحليل البيانات، وتوليد وتعديل الصور.
                     </p>
 
                     {/* Actionable Feature Tiles */}

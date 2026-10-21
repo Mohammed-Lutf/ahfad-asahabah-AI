@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: noor-ai-app
+    name: diaa-ai-app
     env: node
     plan: free
     buildCommand: npm install && npm run build

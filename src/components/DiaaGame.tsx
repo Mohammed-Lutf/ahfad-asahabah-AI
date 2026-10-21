@@ -60,7 +60,7 @@ interface Particle {
   color: string;
 }
 
-export const NoorGame: React.FC<GameShellProps> = ({
+export const DiaaGame: React.FC<GameShellProps> = ({
   onBackToChat,
   isLightMode,
 }) => {
@@ -68,7 +68,12 @@ export const NoorGame: React.FC<GameShellProps> = ({
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(() => {
     try {
-      return parseInt(localStorage.getItem("noor_game_highscore") || "0", 10);
+      return parseInt(
+        localStorage.getItem("diaa_game_highscore") ||
+          localStorage.getItem("noor_game_highscore") ||
+          "0",
+        10
+      );
     } catch {
       return 0;
     }
@@ -401,7 +406,7 @@ export const NoorGame: React.FC<GameShellProps> = ({
                 setHighScore(player.score);
                 try {
                   localStorage.setItem(
-                    "noor_game_highscore",
+                    "diaa_game_highscore",
                     player.score.toString()
                   );
                 } catch {}
@@ -645,7 +650,7 @@ export const NoorGame: React.FC<GameShellProps> = ({
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">
-            حارس نُور: موجة الطاقة (Noor Guardian)
+            حارس ضياء: موجة الطاقة (Diaa Guardian)
           </h1>
           <p className="text-sm text-slate-400 max-w-md mb-8 leading-relaxed">
             اجمع بلورات الطاقة المضيئة واحمِ النواة من الظلال المتسللة باستخدام
