@@ -90,7 +90,7 @@ const PERSONA_PRESETS: PersonaPreset[] = [
     name: "ضياء - المساعد الشامل",
     description: "المساعد الذكي الرسمي والشامل لمنصة أحفاد الصحابة AI لكافة المهام اليومية والاستفسارات",
     instruction: getCompleteSystemInstruction(
-      "قدم إجابات شاملة، متوازنة، ودقيقة لكافة المهام اليومية والأسئلة العامة مع توضيح هويتك كـ ضياء المساعد الذكي الرسمي لمنصة أحفاد الصحابة AI."
+      "قدم إجابات مباشرة، ذكية، شاملة ومتوازنة لكافة المهام اليومية والأسئلة العامة. ركّز على صلب الموضوع وقدم الفائدة العملية فوراً دون تكرار عبارات التعريف بنفسك في كل رد."
     ),
   },
   {
@@ -178,12 +178,14 @@ export default function App() {
     } catch {
       // Ignore localStorage error
     }
+    const defaultPreset =
+      PERSONA_PRESETS.find((p) => p.id === "default") || PERSONA_PRESETS[0];
     const initialConv: Conversation = {
       id: "conv-initial",
       title: "محادثة جديدة",
       updatedAt: Date.now(),
       messages: [],
-      systemInstruction: PERSONA_PRESETS[0].instruction,
+      systemInstruction: defaultPreset.instruction,
     };
     return [initialConv];
   });
@@ -197,9 +199,11 @@ export default function App() {
   const [isLightMode, setIsLightMode] = useState(false);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [selectedPresetId, setSelectedPresetId] = useState("default");
-  const [customInstruction, setCustomInstruction] = useState(
-    PERSONA_PRESETS[0].instruction
-  );
+  const [customInstruction, setCustomInstruction] = useState(() => {
+    const defaultPreset =
+      PERSONA_PRESETS.find((p) => p.id === "default") || PERSONA_PRESETS[0];
+    return defaultPreset.instruction;
+  });
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);

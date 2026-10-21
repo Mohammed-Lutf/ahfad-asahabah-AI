@@ -241,6 +241,12 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({
           type: mediaRecorder.mimeType || "audio/webm",
         });
 
+        if (audioChunksRef.current.length === 0 || audioBlob.size < 200) {
+          setIsTranscribing(false);
+          setRecordingSeconds(0);
+          return;
+        }
+
         setIsTranscribing(true);
         try {
           const base64Full = await new Promise<string>((resolve, reject) => {
@@ -259,14 +265,16 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({
               mimeType: mediaRecorder.mimeType || "audio/webm",
             }),
           });
-          const data = await res.json();
+          const data = await res.json().catch(() => ({}));
           if (res.ok && data.text) {
             setInput((prev) => (prev ? `${prev} ${data.text}` : data.text));
           } else if (data.error) {
             setErrorMsg(data.error);
+          } else {
+            setErrorMsg("لم يتم التقاط صوت واضح، يرجى المحاولة مرة أخرى.");
           }
-        } catch {
-          setErrorMsg("تعذر تحويل التسجيل الصوتي إلى نص.");
+        } catch (err: any) {
+          setErrorMsg(err?.message || "تعذر تحويل التسجيل الصوتي إلى نص.");
         } finally {
           setIsTranscribing(false);
           setRecordingSeconds(0);

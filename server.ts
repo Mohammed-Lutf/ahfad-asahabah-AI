@@ -241,7 +241,7 @@ async function startServer() {
     }
   });
 
-  // Audio Transcription Endpoint using gemini-3.5-transcribe
+  // Audio Transcription Endpoint using gemini-2.5-flash and multi-model fallback
   app.post("/api/chat/transcribe", async (req, res) => {
     try {
       const { audioBase64, mimeType = "audio/webm" } = req.body;
@@ -249,23 +249,47 @@ async function startServer() {
         res.status(400).json({ error: "Audio data is required" });
         return;
       }
-      const response = await ai.models.generateContent({
-        model: "gemini-3.5-transcribe",
-        contents: {
-          parts: [
-            {
-              inlineData: {
-                mimeType,
-                data: audioBase64,
-              },
+
+      const candidateAudioModels = [
+        "gemini-2.5-flash",
+        "gemini-flash-latest",
+        "gemini-3.8-flash",
+      ];
+
+      let transcribedText = "";
+      let lastError: any = null;
+
+      for (const model of candidateAudioModels) {
+        try {
+          const response = await ai.models.generateContent({
+            model,
+            contents: {
+              parts: [
+                {
+                  inlineData: {
+                    mimeType,
+                    data: audioBase64,
+                  },
+                },
+                {
+                  text: "أنت محرك تفريغ صوتي دقيق فائق السرعة. قم بتحويل هذا المقطع الصوتي المسجل باللغة العربية أو الإنجليزية إلى نص مكتوب مطابق لما قيل تماماً، دون أي مقدمات، تعليقات، أو إضافات من قبلك.",
+                },
+              ],
             },
-            {
-              text: "قم بتفريغ هذا التسجيل الصوتي إلى نص بدقة كما قيل تماماً بدون أي إضافات.",
-            },
-          ],
-        },
-      });
-      res.json({ text: response.text?.trim() || "" });
+          });
+          transcribedText = response.text?.trim() || "";
+          if (transcribedText) break;
+        } catch (err: any) {
+          console.warn(`Audio transcribe model ${model} failed:`, err?.message);
+          lastError = err;
+        }
+      }
+
+      if (!transcribedText && lastError) {
+        throw lastError;
+      }
+
+      res.json({ text: transcribedText });
     } catch (error: any) {
       console.error("Transcribe Error:", error);
       res.status(500).json({ error: error?.message || "فشل تحويل الصوت إلى نص." });

@@ -37,25 +37,47 @@ export default async (req: Request) => {
       });
     }
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-transcribe",
-      contents: {
-        parts: [
-          {
-            inlineData: {
-              mimeType,
-              data: audioBase64,
-            },
+    const candidateAudioModels = [
+      "gemini-2.5-flash",
+      "gemini-flash-latest",
+      "gemini-3.8-flash",
+    ];
+
+    let transcribedText = "";
+    let lastError: any = null;
+
+    for (const model of candidateAudioModels) {
+      try {
+        const response = await ai.models.generateContent({
+          model,
+          contents: {
+            parts: [
+              {
+                inlineData: {
+                  mimeType,
+                  data: audioBase64,
+                },
+              },
+              {
+                text: "أنت محرك تفريغ صوتي دقيق فائق السرعة. قم بتحويل هذا المقطع الصوتي المسجل باللغة العربية أو الإنجليزية إلى نص مكتوب مطابق لما قيل تماماً، دون أي مقدمات، تعليقات، أو إضافات من قبلك.",
+              },
+            ],
           },
-          {
-            text: "قم بتفريغ هذا التسجيل الصوتي إلى نص بدقة كما قيل تماماً بدون أي إضافات.",
-          },
-        ],
-      },
-    });
+        });
+        transcribedText = response.text?.trim() || "";
+        if (transcribedText) break;
+      } catch (err: any) {
+        console.warn(`Audio transcribe model ${model} failed:`, err?.message);
+        lastError = err;
+      }
+    }
+
+    if (!transcribedText && lastError) {
+      throw lastError;
+    }
 
     return new Response(
-      JSON.stringify({ text: response.text?.trim() || "" }),
+      JSON.stringify({ text: transcribedText }),
       {
         headers: {
           "Content-Type": "application/json",
