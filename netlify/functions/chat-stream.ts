@@ -67,46 +67,48 @@ export default async (req: Request) => {
       };
     });
 
-    let thinkingLevel = ThinkingLevel.MEDIUM;
-    if (thinkingMode === "fast") thinkingLevel = ThinkingLevel.LOW;
-    if (thinkingMode === "deep") thinkingLevel = ThinkingLevel.HIGH;
-
-    const config: any = {
-      systemInstruction:
-        systemInstruction ||
-        "أنت 'نُور' (Noor AI)، مساعد ذكي متقدم واحترافي شبيه بـ ChatGPT. تجيب بدقة ووضوح، وتنظم إجاباتك باستخدام تنسيق Markdown (عناوين، قوائم، جداول، وكتل برمجية واضحة). تتحدث باللغة التي يخاطبك بها المستخدم بطلاقة وطبيعية.",
-      thinkingConfig: {
-        thinkingLevel,
-      },
-    };
-
-    if (useWebSearch) {
-      config.tools = [{ googleSearch: {} }];
-    }
-
     const candidateModels = [
       "gemini-2.5-flash",
       "gemini-flash-latest",
-      "gemini-3.5-flash",
-      "gemini-3.7-flash",
       "gemini-3.8-flash",
     ];
+
+    const buildModelConfig = (modelName: string, withTools: boolean) => {
+      const cfg: any = {
+        systemInstruction:
+          systemInstruction ||
+          "أنت 'نُور' (Noor AI)، مساعد ذكي متقدم واحترافي شبيه بـ ChatGPT. تجيب بدقة ووضوح، وتنظم إجاباتك باستخدام تنسيق Markdown (عناوين، قوائم، جداول، وكتل برمجية واضحة). تتحدث باللغة التي يخاطبك بها المستخدم بطلاقة وطبيعية.",
+      };
+
+      if (modelName.startsWith("gemini-3")) {
+        let thinkingLevel = ThinkingLevel.MEDIUM;
+        if (thinkingMode === "fast") thinkingLevel = ThinkingLevel.LOW;
+        if (thinkingMode === "deep") thinkingLevel = ThinkingLevel.HIGH;
+        cfg.thinkingConfig = { thinkingLevel };
+      } else if (modelName.includes("2.5")) {
+        if (thinkingMode === "fast") {
+          cfg.thinkingConfig = { thinkingBudget: 0 };
+        }
+      }
+
+      if (withTools && useWebSearch) {
+        cfg.tools = [{ googleSearch: {} }];
+      }
+
+      return cfg;
+    };
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
         let sentAnyData = false;
+        const searchOptions = useWebSearch ? [true, false] : [false];
 
-        const configsToTry = [config];
-        if (useWebSearch) {
-          const cfgNoTools = { ...config };
-          delete cfgNoTools.tools;
-          configsToTry.push(cfgNoTools);
-        }
-
-        for (const cfg of configsToTry) {
+        for (const withTools of searchOptions) {
           if (sentAnyData) break;
           for (const modelName of candidateModels) {
+            if (sentAnyData) break;
+            const cfg = buildModelConfig(modelName, withTools);
             try {
               const activeStream = await ai.models.generateContentStream({
                 model: modelName,
@@ -142,8 +144,10 @@ export default async (req: Request) => {
 
               if (sentAnyData) break;
             } catch (err: any) {
-              console.warn(`Model ${modelName} stream failed:`, err?.message);
-              if (sentAnyData) break;
+              console.warn(
+                `Model ${modelName} (withTools=${withTools}) failed:`,
+                err?.message
+              );
             }
           }
         }
