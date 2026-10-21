@@ -729,12 +729,17 @@ export default function App() {
                 <PanelRightOpen className="w-4 h-4" />
               </button>
             )}
-            <span className="text-base font-bold tracking-tight whitespace-nowrap shrink-0">
-              نُور AI
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-base font-bold tracking-tight whitespace-nowrap shrink-0 text-emerald-400">
+                أحفاد الصحابة AI
+              </span>
+              <span className="text-xs text-slate-400 hidden sm:inline">
+                | نُور
+              </span>
+            </div>
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[11px] text-emerald-400 font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Gemini 3.8 Flash</span>
+              <span>Gemini 2.5 Flash</span>
             </div>
           </div>
 
@@ -853,10 +858,10 @@ export default function App() {
                       className="text-2xl sm:text-3xl font-bold tracking-tight mb-2.5"
                       style={{ textWrap: "balance" }}
                     >
-                      أهلاً بك في نُور، كيف يمكنني مساعدتك اليوم؟
+                      أهلاً بك في منصة أحفاد الصحابة AI
                     </h1>
                     <p className="text-sm text-slate-400 max-w-lg mb-8 leading-relaxed">
-                      مساعدك الذكي المتكامل للكتابة، البرمجة، توليد وتعديل الصور،
+                      المساعد الذكي المتطور نُور (Noor AI) للكتابة، البرمجة، توليد وتعديل الصور،
                       والبحث الفوري في الويب باللغة العربية والإنجليزية.
                     </p>
 
