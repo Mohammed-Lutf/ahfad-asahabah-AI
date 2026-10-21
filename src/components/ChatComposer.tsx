@@ -356,7 +356,7 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({
                 ? `جارٍ التسجيل الصوتي... (${recordingSeconds} ثانية)`
                 : isTranscribing
                 ? "جارٍ تحويل الصوت إلى نص..."
-                : "اسأل نُور أي شيء، أو أرفق صورة أو كود لتحليله..."
+                : "اسأل ضياء أي شيء، أو أرفق صورة أو كود لتحليله..."
             }
             disabled={isRecording || isTranscribing}
             className={`w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-[15px] leading-relaxed placeholder:text-slate-500 ${
@@ -590,7 +590,7 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({
       </div>
 
       <div className="mt-2 text-center text-[11px] text-slate-500">
-        يمكن لـ نُور ارتكاب بعض الأخطاء. يرجى التحقق من المعلومات الهامة.
+        يمكن لـ ضياء ارتكاب بعض الأخطاء. يرجى التحقق من المعلومات الهامة.
       </div>
     </div>
   );

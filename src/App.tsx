@@ -204,7 +204,7 @@ export default function App() {
       "",
     ];
     for (const msg of activeConversation.messages) {
-      const sender = msg.role === "user" ? "## أنت" : "## نُور (Noor AI)";
+      const sender = msg.role === "user" ? "## أنت" : "## ضياء (Diaa AI)";
       lines.push(sender);
       lines.push(msg.content);
       lines.push("");
@@ -963,7 +963,7 @@ export default function App() {
           >
             <div className="flex items-center justify-between pb-4 border-b border-slate-800/60">
               <h2 className="text-base font-bold">
-                تخصيص شخصية نُور وتعليمات النظام
+                تخصيص شخصية ضياء وتعليمات النظام
               </h2>
               <button
                 type="button"
