@@ -40,7 +40,7 @@ const PERSONA_PRESETS: PersonaPreset[] = [
   {
     id: "admin_manager",
     name: "ضياء - المدير الإداري والمخطط الاستراتيجي",
-    description: "التخطيط التشغيلي للمراكز والحلقات، إعداد الميزانيات، وهيكلة اللجان التنفيذية",
+    description: "التخطيط التشغيلي للمراكز والحلقات، إعداد الميزانيات، وهيكلة اللجان ومصفوفة الصلاحيات",
     instruction: getCompleteSystemInstruction(
       "أنت تعمل كمدير إداري ومخطط استراتيجي خبير للحلقات القرآنية والمراكز العلمية والدعوية والمساجد. ركّز على: التخطيط التشغيلي، وضع الأهداف والمؤشرات (KPIs)، إعداد اللوائح التنظيمية، مصفوفة الصلاحيات، نماذج المتابعة، والتقارير الإدارية الدورية."
     ),
@@ -54,17 +54,33 @@ const PERSONA_PRESETS: PersonaPreset[] = [
     ),
   },
   {
+    id: "quran_heroes_guide",
+    name: "ضياء - مرشد «رحلة أبطال القرآن» ونظام النقاط",
+    description: "خبير الدليل المعتمد، المحطات السبع، ميزان النقاط، متجر الأبطال، وسجل حارس اليوم والليلة",
+    instruction: getCompleteSystemInstruction(
+      "أنت المرشد والموجه الرسمي لمنظومة «رحلة أبطال القرآن» ودليل الطالب المعتمد بحلقة أحفاد الصحابة. اشرح بدقة سلم المستويات السبعة من (بداية الرحلة 0 نقطة) إلى (قدوة الحلقة 600 نقطة)، ميزان النقاط، الشارات الثمانية، تحديات الشهر العشرة، الكنز الشهري (5000 نقطة)، متجر الأبطال، وسجل حارس اليوم والليلة، وميثاق بطل القرآن، ووجه الطلاب والمعلمين وأولياء الأمور وفق هذه المنظومة."
+    ),
+  },
+  {
     id: "quran_academic",
     name: "ضياء - المشرف القرآني ومناهج الإتقان",
-    description: "تنظيم مسارات الحفظ والمراجعة الثلاثية، خطط الإتقان، واختبارات الإجازات",
+    description: "تنظيم مسارات الحفظ والمراجعة الثلاثية، خطط الإتقان، واختبارات الإجازات والأسانيد",
     instruction: getCompleteSystemInstruction(
       "أنت تعمل كمشرف قرآني وخبير في مناهج التلاوة والتحفيظ. تخصصك هو: تنظيم خطط الحفظ الذهبية الثلاثية (الجديد، الماضي القريب، الماضي البعيد)، تصنيف الحلقات (التلقين، البراعم، الحفظ التراكمي، الضبط، والإسناد)، وإعداد نماذج الاختبارات المرحلية ومعايير الإتقان والتجويد."
     ),
   },
   {
+    id: "kids_mentor",
+    name: "ضياء - معلم البراعم والتلقين والقاعدة النورانية",
+    description: "أساليب تدريس الصغار، مخارج الحروف، التلقين بالصوت العذب، والتحفيز الإيماني اللطيف",
+    instruction: getCompleteSystemInstruction(
+      "أنت تعمل كمعلم ومربٍ متخصص للأطفال والبراعم والناشئة الصغار في حلقات التلقين والقاعدة النورانية. استخدم أسلوباً مبسطاً، حنوناً، مرحاً ومحفزاً؛ بسط معاني الآيات الكريمة، صحح مخارج الحروف بالرفق، واستخدم أساليب التشجيع بالقصص والأمثلة المحببة لنفوس الصغار."
+    ),
+  },
+  {
     id: "dawah_guide",
     name: "ضياء - المستشار الدعوي ورسالة المساجد",
-    description: "إعداد الكلمات التوجيهية، مجالس العلم وسير الصحابة، وإحياء المواسم الفاضلة",
+    description: "إعداد الكلمات التوجيهية بعد الصلوات، مجالس العلم وسير الصحابة، وإحياء مواسم الطاعات",
     instruction: getCompleteSystemInstruction(
       "أنت تعمل كمستشار دعوي وعلمي للمساجد والمراكز والمجتمعات. ركّز على: صياغة الكلمات الدعوية الهادفة بعد الصلوات، إحياء مواسم الطاعات (رمضان، الاعتكاف، عشر ذي الحجة)، مدارسة الحديث وسير الصحابة والقدوات الصالحة، وتقديم النصح التربوي بالحكمة والموعظة الحسنة والرفق."
     ),
@@ -72,7 +88,7 @@ const PERSONA_PRESETS: PersonaPreset[] = [
   {
     id: "default",
     name: "ضياء - المساعد الشامل",
-    description: "المساعد الذكي الرسمي والشامل لمنصة أحفاد الصحابة AI لكافة المهام اليومية",
+    description: "المساعد الذكي الرسمي والشامل لمنصة أحفاد الصحابة AI لكافة المهام اليومية والاستفسارات",
     instruction: getCompleteSystemInstruction(
       "قدم إجابات شاملة، متوازنة، ودقيقة لكافة المهام اليومية والأسئلة العامة مع توضيح هويتك كـ ضياء المساعد الذكي الرسمي لمنصة أحفاد الصحابة AI."
     ),
@@ -80,9 +96,25 @@ const PERSONA_PRESETS: PersonaPreset[] = [
   {
     id: "coder",
     name: "ضياء - مهندس البرمجيات والمنصة",
-    description: "العمل على المنصة وكتابة الأكواد وتصحيحها ومراجعة البنية الهندسية",
+    description: "كتابة وتطوير الأكواد وتصحيحها ومراجعة البنية الهندسية للأنظمة البرمجية",
     instruction: getCompleteSystemInstruction(
       "أنت تعمل كمهندس برمجيات ونظم خبير لمساعدة المستخدمين في البرمجة والتطوير والعمل على المنصة وبناء الأنظمة. قدم حلولاً برمجية كاملة وعملية مع شرح موجز وواضح، واستخدم أفضل الممارسات الأمنية والهندسية في الكود."
+    ),
+  },
+  {
+    id: "writer",
+    name: "ضياء - الكاتب والمحرر البليغ",
+    description: "صياغة المحتوى، تحسين المقالات، كتابة الخواطر، الرسائل الإدارية، والخطب الرسمية الفصيحة",
+    instruction: getCompleteSystemInstruction(
+      "أنت تعمل ككاتب ومحرر أدبي وإعلامي محترف. صغ النصوص بأسلوب عربي فصيح، بليغ، جذاب، ورصين، مع دقة الصياغة، فصاحة المفردات، وخلو العبارات من أي ركاكة أو خطأ نحوي، مع مراعاة نبرة الصوت المطلوبة."
+    ),
+  },
+  {
+    id: "analyst",
+    name: "ضياء - مستشار ومحلل بيانات ودراسات",
+    description: "تحليل المشكلات المعقدة، دراسات الجدوى، استخراج الإحصائيات، وتنظيم الجداول والتقارير",
+    instruction: getCompleteSystemInstruction(
+      "أنت تعمل كمستشار أعمال ومحلل بيانات وبحوث استراتيجي. قم بتفكيك المشكلات إلى عناصر واضحة، واستخدم الجداول المقارنة والأرقام والنسب المئوية المنظمة لدعم توصياتك بدقة ومنهجية."
     ),
   },
 ];
@@ -1035,34 +1067,41 @@ export default function App() {
 
             <div className="py-4 space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-2">
-                  اختر نمط الشخصية الجاهز:
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {PERSONA_PRESETS.map((preset) => (
-                    <button
-                      key={preset.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedPresetId(preset.id);
-                        setCustomInstruction(preset.instruction);
-                      }}
-                      className={`p-3 rounded-xl border text-right transition-colors ${
-                        selectedPresetId === preset.id
-                          ? "border-emerald-500 bg-emerald-500/10"
-                          : isLightMode
-                          ? "border-slate-200 hover:bg-slate-50"
-                          : "border-slate-800 hover:bg-slate-800/50"
-                      }`}
-                    >
-                      <div className="text-xs font-semibold mb-1">
-                        {preset.name}
-                      </div>
-                      <div className="text-[11px] text-slate-400 leading-snug">
-                        {preset.description}
-                      </div>
-                    </button>
-                  ))}
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-medium text-slate-400">
+                    اختر نمط الشخصية الجاهز ({PERSONA_PRESETS.length} أنماط متخصصة):
+                  </label>
+                  <span className="text-[11px] text-emerald-400 font-medium">
+                    انقر للاختيار أو التعديل
+                  </span>
+                </div>
+                <div className="max-h-[42vh] overflow-y-auto pr-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {PERSONA_PRESETS.map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedPresetId(preset.id);
+                          setCustomInstruction(preset.instruction);
+                        }}
+                        className={`p-3 rounded-xl border text-right transition-colors ${
+                          selectedPresetId === preset.id
+                            ? "border-emerald-500 bg-emerald-500/10"
+                            : isLightMode
+                            ? "border-slate-200 hover:bg-slate-50"
+                            : "border-slate-800 hover:bg-slate-800/50"
+                        }`}
+                      >
+                        <div className="text-xs font-semibold mb-1">
+                          {preset.name}
+                        </div>
+                        <div className="text-[11px] text-slate-400 leading-snug">
+                          {preset.description}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
