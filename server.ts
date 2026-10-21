@@ -74,10 +74,25 @@ async function startServer() {
         };
       });
 
+      const userApiKey = req.headers["x-gemini-api-key"] as string | undefined;
+      const activeApiKey =
+        userApiKey && userApiKey.trim().length > 10
+          ? userApiKey.trim()
+          : process.env.GEMINI_API_KEY;
+
+      const activeAi = new GoogleGenAI({
+        apiKey: activeApiKey,
+        httpOptions: {
+          headers: {
+            "User-Agent": "aistudio-build",
+          },
+        },
+      });
+
+      // gemini-flash-latest is prioritized as it has distinct quotas from 2.5
       const candidateModels = [
-        "gemini-2.5-flash",
         "gemini-flash-latest",
-        "gemini-3.8-flash",
+        "gemini-2.5-flash",
       ];
 
       const buildModelConfig = (modelName: string, withTools: boolean) => {
@@ -112,7 +127,7 @@ async function startServer() {
           if (sentAnyData) break;
           const cfg = buildModelConfig(modelName, withTools);
           try {
-            const activeStream = await ai.models.generateContentStream({
+            const activeStream = await activeAi.models.generateContentStream({
               model: modelName,
               contents: formattedContents,
               config: cfg,
@@ -157,7 +172,8 @@ async function startServer() {
       if (!sentAnyData) {
         res.write(
           `data: ${JSON.stringify({
-            error: "الخدمة مشغولة مؤقتاً، يرجى المحاولة بعد لحظات.",
+            error:
+              "وصل مفتاح الذكاء الاصطناعي إلى الحد الأقصى للاستخدام اليومي المجاني (Google Free Tier Quota). يمكنك تغيير أو تحديث مفتاح API في الإعدادات أو المحاولة لاحقاً.",
           })}\n\n`
         );
       } else {
@@ -241,9 +257,24 @@ async function startServer() {
     }
   });
 
-  // Audio Transcription Endpoint using gemini-2.5-flash and multi-model fallback
+  // Audio Transcription Endpoint using gemini-flash-latest and multi-model fallback
   app.post("/api/chat/transcribe", async (req, res) => {
     try {
+      const userApiKey = req.headers["x-gemini-api-key"] as string | undefined;
+      const activeApiKey =
+        userApiKey && userApiKey.trim().length > 10
+          ? userApiKey.trim()
+          : process.env.GEMINI_API_KEY;
+
+      const activeAi = new GoogleGenAI({
+        apiKey: activeApiKey,
+        httpOptions: {
+          headers: {
+            "User-Agent": "aistudio-build",
+          },
+        },
+      });
+
       const { audioBase64, mimeType = "audio/webm" } = req.body;
       if (!audioBase64) {
         res.status(400).json({ error: "Audio data is required" });
@@ -251,9 +282,8 @@ async function startServer() {
       }
 
       const candidateAudioModels = [
-        "gemini-2.5-flash",
         "gemini-flash-latest",
-        "gemini-3.8-flash",
+        "gemini-2.5-flash",
       ];
 
       let transcribedText = "";
@@ -261,7 +291,7 @@ async function startServer() {
 
       for (const model of candidateAudioModels) {
         try {
-          const response = await ai.models.generateContent({
+          const response = await activeAi.models.generateContent({
             model,
             contents: {
               parts: [
@@ -286,13 +316,21 @@ async function startServer() {
       }
 
       if (!transcribedText && lastError) {
+        const errStr = lastError?.message || "";
+        if (lastError?.status === 429 || errStr.includes("quota") || errStr.includes("RESOURCE_EXHAUSTED")) {
+          throw new Error("وصل مفتاح الذكاء الاصطناعي إلى الحد الأقصى للاستخدام اليومي المجاني (Google Free Tier Quota). يمكنك تغيير أو تحديث مفتاح API في الإعدادات.");
+        }
         throw lastError;
       }
 
       res.json({ text: transcribedText });
     } catch (error: any) {
       console.error("Transcribe Error:", error);
-      res.status(500).json({ error: error?.message || "فشل تحويل الصوت إلى نص." });
+      let errMessage = error?.message || "فشل تحويل الصوت إلى نص.";
+      if (errMessage.includes("quota") || errMessage.includes("RESOURCE_EXHAUSTED")) {
+        errMessage = "وصل مفتاح الذكاء الاصطناعي إلى الحد الأقصى للاستخدام اليومي المجاني (Google Free Tier Quota). يمكنك تغيير أو تحديث مفتاح API في الإعدادات.";
+      }
+      res.status(500).json({ error: errMessage });
     }
   });
 

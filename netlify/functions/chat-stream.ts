@@ -17,7 +17,7 @@ export default async (req: Request) => {
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Headers": "Content-Type, x-gemini-api-key",
       },
     });
   }
@@ -30,6 +30,21 @@ export default async (req: Request) => {
   }
 
   try {
+    const userApiKey = req.headers.get("x-gemini-api-key");
+    const activeApiKey =
+      userApiKey && userApiKey.trim().length > 10
+        ? userApiKey.trim()
+        : process.env.GEMINI_API_KEY;
+
+    const activeAi = new GoogleGenAI({
+      apiKey: activeApiKey,
+      httpOptions: {
+        headers: {
+          "User-Agent": "aistudio-build",
+        },
+      },
+    });
+
     const body = await req.json();
     const {
       messages,
@@ -68,10 +83,10 @@ export default async (req: Request) => {
       };
     });
 
+    // gemini-flash-latest is prioritized as it has distinct quotas from 2.5
     const candidateModels = [
-      "gemini-2.5-flash",
       "gemini-flash-latest",
-      "gemini-3.8-flash",
+      "gemini-2.5-flash",
     ];
 
     const buildModelConfig = (modelName: string, withTools: boolean) => {
@@ -109,7 +124,7 @@ export default async (req: Request) => {
             if (sentAnyData) break;
             const cfg = buildModelConfig(modelName, withTools);
             try {
-              const activeStream = await ai.models.generateContentStream({
+              const activeStream = await activeAi.models.generateContentStream({
                 model: modelName,
                 contents: formattedContents,
                 config: cfg,
@@ -153,7 +168,8 @@ export default async (req: Request) => {
 
         if (!sentAnyData) {
           const errPayload = JSON.stringify({
-            error: "الخدمة مشغولة مؤقتاً، يرجى المحاولة بعد لحظات.",
+            error:
+              "وصل مفتاح الذكاء الاصطناعي إلى الحد الأقصى للاستخدام اليومي المجاني (Google Free Tier Quota). يمكنك تغيير أو تحديث مفتاح API في الإعدادات أو المحاولة لاحقاً.",
           });
           controller.enqueue(encoder.encode(`data: ${errPayload}\n\n`));
         } else {

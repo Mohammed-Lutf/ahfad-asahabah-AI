@@ -22,6 +22,8 @@ import {
   Users,
   Award,
   Compass,
+  Check,
+  Key,
 } from "lucide-react";
 import { Conversation, ThinkingMode, Attachment, PersonaPreset } from "./types";
 import { MessageItem } from "./components/MessageItem";
@@ -194,6 +196,13 @@ export default function App() {
       PERSONA_PRESETS.find((p) => p.id === "default") || PERSONA_PRESETS[0];
     return defaultPreset.instruction;
   });
+  const [customApiKey, setCustomApiKey] = useState(() => {
+    try {
+      return localStorage.getItem("diaa_custom_gemini_api_key") || "";
+    } catch {
+      return "";
+    }
+  });
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -355,9 +364,15 @@ export default function App() {
     abortControllerRef.current = controller;
 
     try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      const activeKey = customApiKey.trim() || (typeof window !== "undefined" ? localStorage.getItem("diaa_custom_gemini_api_key") || "" : "");
+      if (activeKey) {
+        headers["x-gemini-api-key"] = activeKey.trim();
+      }
+
       const response = await fetch("/api/chat/stream", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           messages: messagesHistory,
           systemInstruction: getCompleteSystemInstruction(
@@ -371,8 +386,18 @@ export default function App() {
 
       if (!response.ok || !response.body) {
         const errData = await response.json().catch(() => ({}));
+        let rawErr = String(errData.error || "");
+        if (
+          rawErr.includes("RESOURCE_EXHAUSTED") ||
+          rawErr.includes("quota") ||
+          rawErr.includes("Quota exceeded") ||
+          rawErr.includes("429")
+        ) {
+          rawErr =
+            "⚠️ تم استنفاد الحصة اليومية المجانية لخادم الذكاء الاصطناعي (Google AI Studio Free Tier). يمكنك وضع مفتاح API شخصي مجاناً من إعدادات التخصيص ⚙️ بالأعلى للمتابعة فوراً.";
+        }
         throw new Error(
-          errData.error || "تعذر الاتصال بالخادم الذكي. حاول مرة أخرى."
+          rawErr || "تعذر الاتصال بالخادم الذكي. حاول مرة أخرى."
         );
       }
 
@@ -413,6 +438,16 @@ export default function App() {
               }
             } catch {
               // Not nested JSON
+            }
+            if (
+              typeof errorText === "string" &&
+              (errorText.includes("RESOURCE_EXHAUSTED") ||
+                errorText.includes("quota") ||
+                errorText.includes("Quota exceeded") ||
+                errorText.includes("429"))
+            ) {
+              errorText =
+                "⚠️ تم استنفاد الحصة اليومية المجانية لخادم الذكاء الاصطناعي (Google AI Studio Free Tier). يمكنك وضع مفتاح API شخصي مجاناً من إعدادات التخصيص ⚙️ بالأعلى للمتابعة فوراً دون انتظار.";
             }
             throw new Error(errorText);
           }
@@ -455,6 +490,17 @@ export default function App() {
       if (error.name === "AbortError") {
         return;
       }
+      let displayError = error?.message || "حدث خطأ غير متوقع أثناء التوليد.";
+      if (
+        typeof displayError === "string" &&
+        (displayError.includes("RESOURCE_EXHAUSTED") ||
+          displayError.includes("quota") ||
+          displayError.includes("Quota exceeded") ||
+          displayError.includes("429"))
+      ) {
+        displayError =
+          "⚠️ تم استنفاد الحصة اليومية المجانية لخادم الذكاء الاصطناعي (Google AI Studio Free Tier). يمكنك وضع مفتاح API شخصي مجاناً من إعدادات التخصيص ⚙️ بالأعلى للمتابعة فوراً.";
+      }
       setConversations((prev) =>
         prev.map((c) =>
           c.id === convId
@@ -464,8 +510,7 @@ export default function App() {
                   m.id === assistantMsgId
                     ? {
                         ...m,
-                        content:
-                          error?.message || "حدث خطأ غير متوقع أثناء التوليد.",
+                        content: displayError,
                         isError: true,
                       }
                     : m
@@ -1169,6 +1214,38 @@ export default function App() {
                   placeholder="حدد كيف تريد أن يتصرف المساعد أو أسلوب الإجابة المفضل..."
                 />
               </div>
+
+              {/* Custom API Key Section */}
+              <div className="pt-2 border-t border-slate-800/60">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                    <Key className="w-3.5 h-3.5 text-amber-400" />
+                    <span>مفتاح Gemini API خاص (اختياري - لتجاوز قيود الحصة اليومية):</span>
+                  </label>
+                  <a
+                    href="https://aistudio.google.com/app/apikey"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[10px] text-emerald-400 hover:underline"
+                  >
+                    الحصول على مفتاح مجاني من Google ↗
+                  </a>
+                </div>
+                <input
+                  type="password"
+                  value={customApiKey}
+                  onChange={(e) => setCustomApiKey(e.target.value)}
+                  placeholder="AIzaSy... (اتركه فارغاً للاعتماد على المفتاح الافتراضي للمنصة)"
+                  className={`w-full rounded-xl border px-3 py-2 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500 ${
+                    isLightMode
+                      ? "bg-slate-50 border-slate-200 text-slate-900"
+                      : "bg-[#0B0F17] border-slate-800 text-slate-200"
+                  }`}
+                />
+                <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+                  يُحفظ المفتاح محلياً في متصفحك فقط ولا يشاركه أحد. يمنحك حصتك الشخصية المستقلة ويتجاوز أي حدود استهلاك مؤقتة للمنصة.
+                </p>
+              </div>
             </div>
 
             <div className="flex items-center justify-between pt-3 border-t border-slate-800/60">
@@ -1186,6 +1263,11 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => {
+                    try {
+                      localStorage.setItem("diaa_custom_gemini_api_key", customApiKey.trim());
+                    } catch {
+                      // Ignore quota
+                    }
                     setConversations((prev) =>
                       prev.map((c) =>
                         c.id === activeConversation?.id

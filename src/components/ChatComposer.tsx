@@ -257,9 +257,15 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({
           });
           const audioBase64 = base64Full.split(",")[1];
 
+          const customApiKey = localStorage.getItem("diaa_custom_gemini_api_key") || "";
+          const headers: Record<string, string> = { "Content-Type": "application/json" };
+          if (customApiKey) {
+            headers["x-gemini-api-key"] = customApiKey;
+          }
+
           const res = await fetch("/api/chat/transcribe", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers,
             body: JSON.stringify({
               audioBase64,
               mimeType: mediaRecorder.mimeType || "audio/webm",
@@ -269,12 +275,22 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({
           if (res.ok && data.text) {
             setInput((prev) => (prev ? `${prev} ${data.text}` : data.text));
           } else if (data.error) {
-            setErrorMsg(data.error);
+            const errStr = String(data.error);
+            if (errStr.includes("RESOURCE_EXHAUSTED") || errStr.includes("quota") || errStr.includes("429")) {
+              setErrorMsg("تم بلوغ الحد المجاني المؤقت للتعرف الصوتي من جوجل. يمكنك وضع مفتاحك الخاص في إعدادات التخصيص ⚙️ للمتابعة فوراً.");
+            } else {
+              setErrorMsg(data.error);
+            }
           } else {
             setErrorMsg("لم يتم التقاط صوت واضح، يرجى المحاولة مرة أخرى.");
           }
         } catch (err: any) {
-          setErrorMsg(err?.message || "تعذر تحويل التسجيل الصوتي إلى نص.");
+          const errMsg = String(err?.message || "");
+          if (errMsg.includes("RESOURCE_EXHAUSTED") || errMsg.includes("quota") || errMsg.includes("429")) {
+            setErrorMsg("تم بلوغ الحد اليومي المؤقت. يرجى إضافة مفتاح API خاص بك في التخصيص ⚙️ للمتابعة.");
+          } else {
+            setErrorMsg(err?.message || "تعذر تحويل التسجيل الصوتي إلى نص.");
+          }
         } finally {
           setIsTranscribing(false);
           setRecordingSeconds(0);

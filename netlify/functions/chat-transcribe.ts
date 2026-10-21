@@ -16,7 +16,7 @@ export default async (req: Request) => {
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Headers": "Content-Type, x-gemini-api-key",
       },
     });
   }
@@ -29,6 +29,21 @@ export default async (req: Request) => {
   }
 
   try {
+    const userApiKey = req.headers.get("x-gemini-api-key");
+    const activeApiKey =
+      userApiKey && userApiKey.trim().length > 10
+        ? userApiKey.trim()
+        : process.env.GEMINI_API_KEY;
+
+    const activeAi = new GoogleGenAI({
+      apiKey: activeApiKey,
+      httpOptions: {
+        headers: {
+          "User-Agent": "aistudio-build",
+        },
+      },
+    });
+
     const { audioBase64, mimeType = "audio/webm" } = await req.json();
     if (!audioBase64) {
       return new Response(JSON.stringify({ error: "Audio data is required" }), {
@@ -38,9 +53,8 @@ export default async (req: Request) => {
     }
 
     const candidateAudioModels = [
-      "gemini-2.5-flash",
       "gemini-flash-latest",
-      "gemini-3.8-flash",
+      "gemini-2.5-flash",
     ];
 
     let transcribedText = "";
@@ -48,7 +62,7 @@ export default async (req: Request) => {
 
     for (const model of candidateAudioModels) {
       try {
-        const response = await ai.models.generateContent({
+        const response = await activeAi.models.generateContent({
           model,
           contents: {
             parts: [
@@ -73,6 +87,10 @@ export default async (req: Request) => {
     }
 
     if (!transcribedText && lastError) {
+      const errStr = lastError?.message || "";
+      if (lastError?.status === 429 || errStr.includes("quota") || errStr.includes("RESOURCE_EXHAUSTED")) {
+        throw new Error("وصل مفتاح الذكاء الاصطناعي إلى الحد الأقصى للاستخدام اليومي المجاني (Google Free Tier Quota). يمكنك تغيير أو تحديث مفتاح API في الإعدادات.");
+      }
       throw lastError;
     }
 
@@ -86,9 +104,13 @@ export default async (req: Request) => {
       }
     );
   } catch (error: any) {
+    let errMessage = error?.message || "فشل تحويل الصوت إلى نص.";
+    if (errMessage.includes("quota") || errMessage.includes("RESOURCE_EXHAUSTED")) {
+      errMessage = "وصل مفتاح الذكاء الاصطناعي إلى الحد الأقصى للاستخدام اليومي المجاني (Google Free Tier Quota). يمكنك تغيير أو تحديث مفتاح API في الإعدادات.";
+    }
     return new Response(
       JSON.stringify({
-        error: error?.message || "فشل تحويل الصوت إلى نص.",
+        error: errMessage,
       }),
       {
         status: 500,
