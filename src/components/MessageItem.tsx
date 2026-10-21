@@ -223,10 +223,10 @@ export const MessageItem: React.FC<MessageItemProps> = ({
               isLightMode ? "text-slate-900" : "text-slate-200"
             }`}
           >
-            نُور
+            ضياء
           </span>
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
-            Gemini 3.8 Flash
+            Gemini 2.5 Flash
           </span>
           <span aria-hidden="true">·</span>
           <span className="tabular-nums text-[11px] text-slate-500">
@@ -246,7 +246,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
         ) : (
           <div className="flex items-center gap-2 py-2 text-sm text-slate-400">
             <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
-            <span>يفكر نُور...</span>
+            <span>يفكر ضياء...</span>
           </div>
         )}
 
