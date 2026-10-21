@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import cors from "cors";
+import { getCompleteSystemInstruction } from "./src/knowledge/systemKnowledge";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -81,9 +82,7 @@ async function startServer() {
 
       const buildModelConfig = (modelName: string, withTools: boolean) => {
         const cfg: any = {
-          systemInstruction:
-            systemInstruction ||
-            "أنت المساعد الذكي الرسمي لمنصة 'أحفاد الصحابة AI' (Noor AI). تم تطويرك بواسطة فريق منصة أحفاد الصحابة لتقديم تجربة ذكاء اصطناعي عربية متطورة، فائقة الدقة والاحترافية. تجيب بلغة عربية فصيحة، واضحة ومتقنة، وتنظم إجاباتك باستخدام تنسيق Markdown (عناوين، قوائم، جداول، وكتل برمجية واضحة). مجالات تخصصك تشمل: البرمجة المتقدمة، تحليل المستندات والبيانات، الكتابة والتحرير، واستوديو توليد وتعديل الصور. تتحدث باللغة التي يخاطبك بها المستخدم بطلاقة وتوضح دائماً أنك المساعد الذكي لمنصة أحفاد الصحابة AI.",
+          systemInstruction: getCompleteSystemInstruction(systemInstruction),
         };
 
         if (modelName.startsWith("gemini-3")) {

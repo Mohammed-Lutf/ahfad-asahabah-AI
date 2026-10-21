@@ -25,37 +25,45 @@ import { MessageItem } from "./components/MessageItem";
 import { ChatComposer } from "./components/ChatComposer";
 import { ImageStudio } from "./components/ImageStudio";
 import { NoorGame } from "./components/NoorGame";
+import {
+  getCompleteSystemInstruction,
+  CORE_KNOWLEDGE,
+} from "./knowledge/systemKnowledge";
 
 const STORAGE_KEY = "noor_ai_conversations_v1";
 
 const PERSONA_PRESETS: PersonaPreset[] = [
   {
     id: "default",
-    name: "المساعد الشامل (أحفاد الصحابة AI)",
-    description: "المساعد الذكي الرسمي لمنصة أحفاد الصحابة، متوازن ودقيق لجميع المهام",
-    instruction:
-      "أنت المساعد الذكي الرسمي لمنصة 'أحفاد الصحابة AI' (Noor AI). تم تطويرك بواسطة فريق منصة أحفاد الصحابة لتقديم تجربة ذكاء اصطناعي عربية متطورة، فائقة الدقة والاحترافية. تجيب بلغة عربية فصيحة، واضحة ومتقنة، وتنظم إجاباتك باستخدام تنسيق Markdown (عناوين، قوائم، جداول، وكتل برمجية واضحة). مجالات تخصصك تشمل: البرمجة المتقدمة، تحليل المستندات والبيانات، الكتابة والتحرير، واستوديو توليد وتعديل الصور. تتحدث باللغة التي يخاطبك بها المستخدم بطلاقة وطبيعية وتوضح دائماً أنك المساعد الذكي التابع لمنصة أحفاد الصحابة AI.",
+    name: "ضياء - المساعد الشامل",
+    description: "المساعد الذكي الرسمي لشركة Omni-Tech ومنصة أحفاد الصحابة AI",
+    instruction: getCompleteSystemInstruction(
+      "قدم إجابات شاملة، متوازنة، ودقيقة لكافة المهام اليومية والأسئلة العامة مع توضيح هويتك كـ ضياء من Omni-Tech."
+    ),
   },
   {
     id: "coder",
-    name: "مهندس برمجيات خبير",
-    description: "يركز على كتابة كود نظيف، مراجعة الأخطاء، وأفضل الممارسات الهندسية",
-    instruction:
-      "أنت مهندس برمجيات خبير (Senior Staff Software Engineer). قدم حلولاً برمجية كاملة وعملية مع شرح موجز وواضح، واستخدم أفضل الممارسات الأمنية والهندسية في الكود.",
+    name: "ضياء - مهندس البرمجيات والمنصة",
+    description: "العمل على المنصة وكتابة الأكواد وتصحيحها ومراجعة البنية الهندسية",
+    instruction: getCompleteSystemInstruction(
+      "أنت تعمل كمهندس برمجيات ونظم خبير (Senior Staff Software Engineer) في شركة Omni-Tech لمساعدة المستخدمين في البرمجة والتطوير والعمل على المنصة. قدم حلولاً برمجية كاملة وعملية مع شرح موجز وواضح، واستخدم أفضل الممارسات الأمنية والهندسية في الكود."
+    ),
   },
   {
     id: "writer",
-    name: "كاتب ومحرر إبداعي",
-    description: "صياغة المقالات، تحسين النصوص، والترجمة الاحترافية",
-    instruction:
-      "أنت كاتب ومحرر أدبي وإعلاني محترف. صغ النصوص بأسلوب بليغ، جذاب، وخالٍ من الأخطاء اللغوية، مع مراعاة نبرة الصوت المطلوبة.",
+    name: "ضياء - كاتب ومحرر إبداعي",
+    description: "صياغة المحتوى، تحسين المقالات، والترجمة الاحترافية المتقنة",
+    instruction: getCompleteSystemInstruction(
+      "أنت تعمل ككاتب ومحرر أدبي وإعلاني محترف. صغ النصوص بأسلوب بليغ، جذاب، وخالٍ من الأخطاء اللغوية، مع مراعاة نبرة الصوت المطلوبة."
+    ),
   },
   {
     id: "analyst",
-    name: "محلل بيانات وأعمال",
+    name: "ضياء - مستشار ومحلل بيانات",
     description: "تحليل المشكلات المعقدة، دراسات الجدوى، وتنظيم الجداول",
-    instruction:
-      "أنت مستشار أعمال ومحلل بيانات استراتيجي. قم بتفكيك المشكلات إلى عناصر واضحة، واستخدم الجداول المقارنة والأرقام المنظمة لدعم توصياتك.",
+    instruction: getCompleteSystemInstruction(
+      "أنت تعمل كمستشار أعمال ومحلل بيانات استراتيجي. قم بتفكيك المشكلات إلى عناصر واضحة، واستخدم الجداول المقارنة والأرقام المنظمة لدعم توصياتك."
+    ),
   },
 ];
 
@@ -266,8 +274,9 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: messagesHistory,
-          systemInstruction:
-            activeConversation?.systemInstruction || customInstruction,
+          systemInstruction: getCompleteSystemInstruction(
+            activeConversation?.systemInstruction || customInstruction
+          ),
           thinkingMode: mode,
           useWebSearch: webSearch,
         }),
@@ -678,7 +687,7 @@ export default function App() {
           >
             <div className="flex items-center gap-2.5">
               <Sliders className="w-3.5 h-3.5 text-slate-400" />
-              <span>تخصيص شخصية نُور</span>
+              <span>تخصيص شخصية ضياء</span>
             </div>
           </button>
 
@@ -734,7 +743,7 @@ export default function App() {
                 أحفاد الصحابة AI
               </span>
               <span className="text-xs text-slate-400 hidden sm:inline">
-                | نُور
+                | ضياء (Omni-Tech)
               </span>
             </div>
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[11px] text-emerald-400 font-medium">
@@ -861,8 +870,7 @@ export default function App() {
                       أهلاً بك في منصة أحفاد الصحابة AI
                     </h1>
                     <p className="text-sm text-slate-400 max-w-lg mb-8 leading-relaxed">
-                      المساعد الذكي المتطور نُور (Noor AI) للكتابة، البرمجة، توليد وتعديل الصور،
-                      والبحث الفوري في الويب باللغة العربية والإنجليزية.
+                      المساعد الذكي المتطور ضياء (Diaa AI) من شركة Omni-Tech لمساعدتك في العمل على المنصة، كتابة وتنزيل الأكواد، تحليل البيانات، وتوليد وتعديل الصور.
                     </p>
 
                     {/* Actionable Feature Tiles */}
