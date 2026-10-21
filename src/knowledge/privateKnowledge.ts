@@ -11,6 +11,11 @@
  *   في الأقسام المخصصة أدناه، وسيفهمها المساعد ويتعامل معها مباشرة بدقة واحترافية.
  */
 
+import {
+  STUDENT_GUIDE_KNOWLEDGE,
+  formatStudentGuideForPrompt,
+} from "./studentGuideKnowledge";
+
 export interface PrivateKnowledgeSection {
   category: string;
   description: string;
@@ -20,7 +25,8 @@ export interface PrivateKnowledgeSection {
 }
 
 export const PRIVATE_KNOWLEDGE = {
-  // 1. المجال الدعوي ورسالة المساجد والتربية الإيمانية
+  // دليل الطالب المعتمد (رحلة أبطال القرآن)
+  studentGuide: STUDENT_GUIDE_KNOWLEDGE,
   dawahAndMosques: {
     category: "المجال الدعوي ورسالة المساجد",
     description:
@@ -202,5 +208,7 @@ ${students.studentActivities.map((a) => `    * ${a.type}: ${a.examples}`).join("
 
 4. توجيهات عامة:
 ${PRIVATE_KNOWLEDGE.customAdditions.map((c) => `  - ${c}`).join("\n")}
+
+${formatStudentGuideForPrompt()}
 `.trim();
 }
