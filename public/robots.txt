@@ -1,0 +1,6 @@
+# Robots.txt for Ahfad Al-Sahabah AI (أحفاد الصحابة AI)
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://ahfad-asahabah-ai.netlify.app/sitemap.xml
