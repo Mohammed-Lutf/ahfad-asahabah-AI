@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- الصفحة الرئيسية لمنصة أحفاد الصحابة AI -->
   <url>
     <loc>https://ahfad-asahabah-ai.netlify.app/</loc>
     <lastmod>2026-10-21</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+  </url>
+  <!-- دليل الطالب المعتمد (رحلة أبطال القرآن) - محتوى كامل مفهرس -->
+  <url>
+    <loc>https://ahfad-asahabah-ai.netlify.app/student-guide.html</loc>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
 </urlset>
