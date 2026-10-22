@@ -97,6 +97,7 @@ async function startServer() {
       // gemini-flash-latest is prioritized as it has distinct quotas from 2.5
       const candidateModels = [
         "gemini-flash-latest",
+        "gemini-3.1-flash-lite",
         "gemini-2.5-flash",
       ];
 
@@ -289,6 +290,7 @@ async function startServer() {
 
       const candidateAudioModels = [
         "gemini-flash-latest",
+        "gemini-3.1-flash-lite",
         "gemini-2.5-flash",
       ];
 

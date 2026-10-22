@@ -60,6 +60,7 @@ export default async (req: Request) => {
 
     const candidateAudioModels = [
       "gemini-flash-latest",
+      "gemini-3.1-flash-lite",
       "gemini-2.5-flash",
     ];
 

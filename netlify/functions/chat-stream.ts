@@ -91,6 +91,7 @@ export default async (req: Request) => {
 
     const candidateModels = [
       "gemini-flash-latest",
+      "gemini-3.1-flash-lite",
       "gemini-2.5-flash",
     ];
 
