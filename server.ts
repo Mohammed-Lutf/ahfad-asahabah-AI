@@ -19,6 +19,23 @@ const ai = new GoogleGenAI({
   },
 });
 
+let serverRoundRobinIndex = 0;
+function getServerApiKeys(userApiKey?: string): string[] {
+  if (userApiKey && userApiKey.trim().length > 10) {
+    return [userApiKey.trim()];
+  }
+  const rawPool = process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || "";
+  const pool = rawPool
+    .split(",")
+    .map((k) => k.trim())
+    .filter((k) => k.length > 10);
+  if (pool.length === 0) return [process.env.GEMINI_API_KEY || ""];
+
+  const startIndex = serverRoundRobinIndex % pool.length;
+  serverRoundRobinIndex = (serverRoundRobinIndex + 1) % pool.length;
+  return [...pool.slice(startIndex), ...pool.slice(0, startIndex)];
+}
+
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
@@ -75,19 +92,7 @@ async function startServer() {
       });
 
       const userApiKey = req.headers["x-gemini-api-key"] as string | undefined;
-      const activeApiKey =
-        userApiKey && userApiKey.trim().length > 10
-          ? userApiKey.trim()
-          : process.env.GEMINI_API_KEY;
-
-      const activeAi = new GoogleGenAI({
-        apiKey: activeApiKey,
-        httpOptions: {
-          headers: {
-            "User-Agent": "aistudio-build",
-          },
-        },
-      });
+      const apiKeys = getServerApiKeys(userApiKey);
 
       // gemini-flash-latest is prioritized as it has distinct quotas from 2.5
       const candidateModels = [
@@ -121,50 +126,63 @@ async function startServer() {
       let sentAnyData = false;
       const searchOptions = useWebSearch ? [true, false] : [false];
 
-      for (const withTools of searchOptions) {
+      // Auto-failover across pooled API keys
+      for (const apiKey of apiKeys) {
         if (sentAnyData) break;
-        for (const modelName of candidateModels) {
+        const activeAi = new GoogleGenAI({
+          apiKey,
+          httpOptions: {
+            headers: {
+              "User-Agent": "aistudio-build",
+            },
+          },
+        });
+
+        for (const withTools of searchOptions) {
           if (sentAnyData) break;
-          const cfg = buildModelConfig(modelName, withTools);
-          try {
-            const activeStream = await activeAi.models.generateContentStream({
-              model: modelName,
-              contents: formattedContents,
-              config: cfg,
-            });
-
-            for await (const chunk of activeStream) {
-              const text = chunk.text || "";
-              const groundingChunks =
-                chunk.candidates?.[0]?.groundingMetadata?.groundingChunks;
-
-              let sources: { title: string; uri: string }[] = [];
-              if (groundingChunks && Array.isArray(groundingChunks)) {
-                sources = groundingChunks
-                  .map((gc: any) => gc.web)
-                  .filter((w: any) => w && w.uri)
-                  .map((w: any) => ({
-                    title: w.title || w.uri,
-                    uri: w.uri,
-                  }));
-              }
-
-              if (text || sources.length > 0) {
-                sentAnyData = true;
-                const payload = JSON.stringify({
-                  text,
-                  sources: sources.length > 0 ? sources : undefined,
-                });
-                res.write(`data: ${payload}\n\n`);
-              }
-            }
-
+          for (const modelName of candidateModels) {
             if (sentAnyData) break;
-          } catch (err: any) {
-            console.warn(
-              `Model ${modelName} (withTools=${withTools}) failed:`,
-              err?.message
-            );
+            const cfg = buildModelConfig(modelName, withTools);
+            try {
+              const activeStream = await activeAi.models.generateContentStream({
+                model: modelName,
+                contents: formattedContents,
+                config: cfg,
+              });
+
+              for await (const chunk of activeStream) {
+                const text = chunk.text || "";
+                const groundingChunks =
+                  chunk.candidates?.[0]?.groundingMetadata?.groundingChunks;
+
+                let sources: { title: string; uri: string }[] = [];
+                if (groundingChunks && Array.isArray(groundingChunks)) {
+                  sources = groundingChunks
+                    .map((gc: any) => gc.web)
+                    .filter((w: any) => w && w.uri)
+                    .map((w: any) => ({
+                      title: w.title || w.uri,
+                      uri: w.uri,
+                    }));
+                }
+
+                if (text || sources.length > 0) {
+                  sentAnyData = true;
+                  const payload = JSON.stringify({
+                    text,
+                    sources: sources.length > 0 ? sources : undefined,
+                  });
+                  res.write(`data: ${payload}\n\n`);
+                }
+              }
+
+              if (sentAnyData) break;
+            } catch (err: any) {
+              console.warn(
+                `Key ...${apiKey.slice(-6)} Model ${modelName} failed:`,
+                err?.message
+              );
+            }
           }
         }
       }
@@ -173,7 +191,7 @@ async function startServer() {
         res.write(
           `data: ${JSON.stringify({
             error:
-              "وصل مفتاح الذكاء الاصطناعي إلى الحد الأقصى للاستخدام اليومي المجاني (Google Free Tier Quota). يمكنك تغيير أو تحديث مفتاح API في الإعدادات أو المحاولة لاحقاً.",
+              "وصلت كافة مفاتيح الذكاء الاصطناعي إلى الحد الأقصى المؤقت. يرجى المحاولة بعد قليل أو وضع مفتاحك الخاص في الإعدادات.",
           })}\n\n`
         );
       } else {
@@ -261,19 +279,7 @@ async function startServer() {
   app.post("/api/chat/transcribe", async (req, res) => {
     try {
       const userApiKey = req.headers["x-gemini-api-key"] as string | undefined;
-      const activeApiKey =
-        userApiKey && userApiKey.trim().length > 10
-          ? userApiKey.trim()
-          : process.env.GEMINI_API_KEY;
-
-      const activeAi = new GoogleGenAI({
-        apiKey: activeApiKey,
-        httpOptions: {
-          headers: {
-            "User-Agent": "aistudio-build",
-          },
-        },
-      });
+      const apiKeys = getServerApiKeys(userApiKey);
 
       const { audioBase64, mimeType = "audio/webm" } = req.body;
       if (!audioBase64) {
@@ -289,36 +295,49 @@ async function startServer() {
       let transcribedText = "";
       let lastError: any = null;
 
-      for (const model of candidateAudioModels) {
-        try {
-          const response = await activeAi.models.generateContent({
-            model,
-            contents: {
-              parts: [
-                {
-                  inlineData: {
-                    mimeType,
-                    data: audioBase64,
-                  },
-                },
-                {
-                  text: "أنت محرك تفريغ صوتي دقيق فائق السرعة. قم بتحويل هذا المقطع الصوتي المسجل باللغة العربية أو الإنجليزية إلى نص مكتوب مطابق لما قيل تماماً، دون أي مقدمات، تعليقات، أو إضافات من قبلك.",
-                },
-              ],
+      for (const apiKey of apiKeys) {
+        if (transcribedText) break;
+        const activeAi = new GoogleGenAI({
+          apiKey,
+          httpOptions: {
+            headers: {
+              "User-Agent": "aistudio-build",
             },
-          });
-          transcribedText = response.text?.trim() || "";
+          },
+        });
+
+        for (const model of candidateAudioModels) {
           if (transcribedText) break;
-        } catch (err: any) {
-          console.warn(`Audio transcribe model ${model} failed:`, err?.message);
-          lastError = err;
+          try {
+            const response = await activeAi.models.generateContent({
+              model,
+              contents: {
+                parts: [
+                  {
+                    inlineData: {
+                      mimeType,
+                      data: audioBase64,
+                    },
+                  },
+                  {
+                    text: "أنت محرك تفريغ صوتي دقيق فائق السرعة. قم بتحويل هذا المقطع الصوتي المسجل باللغة العربية أو الإنجليزية إلى نص مكتوب مطابق لما قيل تماماً، دون أي مقدمات، تعليقات، أو إضافات من قبلك.",
+                  },
+                ],
+              },
+            });
+            transcribedText = response.text?.trim() || "";
+            if (transcribedText) break;
+          } catch (err: any) {
+            console.warn(`Key ...${apiKey.slice(-6)} Audio transcribe model ${model} failed:`, err?.message);
+            lastError = err;
+          }
         }
       }
 
       if (!transcribedText && lastError) {
         const errStr = lastError?.message || "";
         if (lastError?.status === 429 || errStr.includes("quota") || errStr.includes("RESOURCE_EXHAUSTED")) {
-          throw new Error("وصل مفتاح الذكاء الاصطناعي إلى الحد الأقصى للاستخدام اليومي المجاني (Google Free Tier Quota). يمكنك تغيير أو تحديث مفتاح API في الإعدادات.");
+          throw new Error("وصلت مفاتيح الذكاء الاصطناعي إلى الحد الأقصى للاستخدام اليومي المجاني (Google Free Tier Quota). يمكنك تغيير أو تحديث مفتاح API في الإعدادات.");
         }
         throw lastError;
       }

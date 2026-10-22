@@ -10,6 +10,24 @@ const ai = new GoogleGenAI({
   },
 });
 
+let roundRobinStreamIndex = 0;
+
+function getStreamApiKeys(userApiKey?: string | null): string[] {
+  if (userApiKey && userApiKey.trim().length > 10) {
+    return [userApiKey.trim()];
+  }
+  const rawPool = process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || "";
+  const pool = rawPool
+    .split(",")
+    .map((k) => k.trim())
+    .filter((k) => k.length > 10);
+  if (pool.length === 0) return [process.env.GEMINI_API_KEY || ""];
+
+  const startIndex = roundRobinStreamIndex % pool.length;
+  roundRobinStreamIndex = (roundRobinStreamIndex + 1) % pool.length;
+  return [...pool.slice(startIndex), ...pool.slice(0, startIndex)];
+}
+
 export default async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -31,19 +49,7 @@ export default async (req: Request) => {
 
   try {
     const userApiKey = req.headers.get("x-gemini-api-key");
-    const activeApiKey =
-      userApiKey && userApiKey.trim().length > 10
-        ? userApiKey.trim()
-        : process.env.GEMINI_API_KEY;
-
-    const activeAi = new GoogleGenAI({
-      apiKey: activeApiKey,
-      httpOptions: {
-        headers: {
-          "User-Agent": "aistudio-build",
-        },
-      },
-    });
+    const apiKeys = getStreamApiKeys(userApiKey);
 
     const body = await req.json();
     const {
@@ -83,7 +89,6 @@ export default async (req: Request) => {
       };
     });
 
-    // gemini-flash-latest is prioritized as it has distinct quotas from 2.5
     const candidateModels = [
       "gemini-flash-latest",
       "gemini-2.5-flash",
@@ -118,50 +123,63 @@ export default async (req: Request) => {
         let sentAnyData = false;
         const searchOptions = useWebSearch ? [true, false] : [false];
 
-        for (const withTools of searchOptions) {
+        // Failover across the API key pool if quota is exhausted or high demand
+        for (const apiKey of apiKeys) {
           if (sentAnyData) break;
-          for (const modelName of candidateModels) {
+          const activeAi = new GoogleGenAI({
+            apiKey,
+            httpOptions: {
+              headers: {
+                "User-Agent": "aistudio-build",
+              },
+            },
+          });
+
+          for (const withTools of searchOptions) {
             if (sentAnyData) break;
-            const cfg = buildModelConfig(modelName, withTools);
-            try {
-              const activeStream = await activeAi.models.generateContentStream({
-                model: modelName,
-                contents: formattedContents,
-                config: cfg,
-              });
-
-              for await (const chunk of activeStream) {
-                const text = chunk.text || "";
-                const groundingChunks =
-                  chunk.candidates?.[0]?.groundingMetadata?.groundingChunks;
-
-                let sources: { title: string; uri: string }[] = [];
-                if (groundingChunks && Array.isArray(groundingChunks)) {
-                  sources = groundingChunks
-                    .map((gc: any) => gc.web)
-                    .filter((w: any) => w && w.uri)
-                    .map((w: any) => ({
-                      title: w.title || w.uri,
-                      uri: w.uri,
-                    }));
-                }
-
-                if (text || sources.length > 0) {
-                  sentAnyData = true;
-                  const payload = JSON.stringify({
-                    text,
-                    sources: sources.length > 0 ? sources : undefined,
-                  });
-                  controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
-                }
-              }
-
+            for (const modelName of candidateModels) {
               if (sentAnyData) break;
-            } catch (err: any) {
-              console.warn(
-                `Model ${modelName} (withTools=${withTools}) failed:`,
-                err?.message
-              );
+              const cfg = buildModelConfig(modelName, withTools);
+              try {
+                const activeStream = await activeAi.models.generateContentStream({
+                  model: modelName,
+                  contents: formattedContents,
+                  config: cfg,
+                });
+
+                for await (const chunk of activeStream) {
+                  const text = chunk.text || "";
+                  const groundingChunks =
+                    chunk.candidates?.[0]?.groundingMetadata?.groundingChunks;
+
+                  let sources: { title: string; uri: string }[] = [];
+                  if (groundingChunks && Array.isArray(groundingChunks)) {
+                    sources = groundingChunks
+                      .map((gc: any) => gc.web)
+                      .filter((w: any) => w && w.uri)
+                      .map((w: any) => ({
+                        title: w.title || w.uri,
+                        uri: w.uri,
+                      }));
+                  }
+
+                  if (text || sources.length > 0) {
+                    sentAnyData = true;
+                    const payload = JSON.stringify({
+                      text,
+                      sources: sources.length > 0 ? sources : undefined,
+                    });
+                    controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
+                  }
+                }
+
+                if (sentAnyData) break;
+              } catch (err: any) {
+                console.warn(
+                  `Key ...${apiKey.slice(-6)} Model ${modelName} failed:`,
+                  err?.message
+                );
+              }
             }
           }
         }
@@ -169,7 +187,7 @@ export default async (req: Request) => {
         if (!sentAnyData) {
           const errPayload = JSON.stringify({
             error:
-              "وصل مفتاح الذكاء الاصطناعي إلى الحد الأقصى للاستخدام اليومي المجاني (Google Free Tier Quota). يمكنك تغيير أو تحديث مفتاح API في الإعدادات أو المحاولة لاحقاً.",
+              "وصلت كافة مفاتيح الذكاء الاصطناعي إلى الحد الأقصى المؤقت. يرجى المحاولة بعد قليل أو وضع مفتاحك الخاص في الإعدادات.",
           });
           controller.enqueue(encoder.encode(`data: ${errPayload}\n\n`));
         } else {
