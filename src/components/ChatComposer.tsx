@@ -309,7 +309,7 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 pb-4 pt-2">
+    <div className="w-full max-w-3xl mx-auto px-3 sm:px-4 pb-8 sm:pb-4 pt-1 sm:pt-2">
       {errorMsg && (
         <div className="mb-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center justify-between">
           <span>{errorMsg}</span>
@@ -613,7 +613,7 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({
         </div>
       </div>
 
-      <div className="mt-2 text-center text-[11px] text-slate-500">
+      <div className="mt-2 text-center text-[11px] text-slate-500 pb-3 sm:pb-0">
         يمكن لـ ضياء ارتكاب بعض الأخطاء. يرجى التحقق من المعلومات الهامة.
       </div>
     </div>
