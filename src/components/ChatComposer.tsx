@@ -500,7 +500,7 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({
                   ? "text-slate-600 hover:bg-slate-100 border border-transparent"
                   : "text-slate-400 hover:bg-slate-800 border border-transparent"
               }`}
-              title="تفعيل البحث المباشر في الويب عبر Google"
+              title="تفعيل البحث اللحظي المباشر في الويب"
             >
               <Globe className="w-3.5 h-3.5" />
               <span>بحث الويب</span>

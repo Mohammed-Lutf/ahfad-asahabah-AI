@@ -149,7 +149,7 @@ const STARTER_PROMPTS = [
   },
   {
     title: "بحث متقدم في الويب ومقارنة",
-    subtitle: "البحث المباشر عبر Google Search Grounding للنتائج الحديثة",
+    subtitle: "البحث اللحظي المباشر في الويب للنتائج الموثقة والحديثة",
     prompt:
       "ابحث لي في الويب عن أحدث الاستراتيجيات والتقنيات التعليمية العالمية المطبقة في تحفيظ القرآن الكريم والتعليم التفاعلي للنشء، وقدم لي ملخصاً مقارناً مع المصادر المرجعية.",
     icon: Globe,
@@ -405,7 +405,7 @@ export default function App() {
           rawErr.includes("429")
         ) {
           rawErr =
-            "⚠️ تم استنفاد الحصة اليومية المجانية لخادم الذكاء الاصطناعي (Google AI Studio Free Tier). يمكنك وضع مفتاح API شخصي مجاناً من إعدادات التخصيص ⚙️ بالأعلى للمتابعة فوراً.";
+            "⚠️ تم استنفاد الحصة التشغيلية اللحظية للمحرك الذكي. يمكنك وضع مفتاح API احتياطي مجاناً من إعدادات التخصيص ⚙️ بالأعلى للمتابعة الفورية دون أي انقطاع.";
         }
         throw new Error(
           rawErr || "تعذر الاتصال بالخادم الذكي. حاول مرة أخرى."
@@ -458,7 +458,7 @@ export default function App() {
                 errorText.includes("429"))
             ) {
               errorText =
-                "⚠️ تم استنفاد الحصة اليومية المجانية لخادم الذكاء الاصطناعي (Google AI Studio Free Tier). يمكنك وضع مفتاح API شخصي مجاناً من إعدادات التخصيص ⚙️ بالأعلى للمتابعة فوراً دون انتظار.";
+                "⚠️ تم استنفاد الحصة التشغيلية اللحظية للمحرك الذكي. يمكنك وضع مفتاح API احتياطي مجاناً من إعدادات التخصيص ⚙️ بالأعلى للمتابعة الفورية دون انتظار.";
             }
             throw new Error(errorText);
           }
@@ -510,7 +510,7 @@ export default function App() {
           displayError.includes("429"))
       ) {
         displayError =
-          "⚠️ تم استنفاد الحصة اليومية المجانية لخادم الذكاء الاصطناعي (Google AI Studio Free Tier). يمكنك وضع مفتاح API شخصي مجاناً من إعدادات التخصيص ⚙️ بالأعلى للمتابعة فوراً.";
+          "⚠️ تم استنفاد الحصة التشغيلية اللحظية للمحرك الذكي. يمكنك وضع مفتاح API احتياطي مجاناً من إعدادات التخصيص ⚙️ بالأعلى للمتابعة الفورية.";
       }
       setConversations((prev) =>
         prev.map((c) =>
@@ -917,9 +917,9 @@ export default function App() {
                 </span>
               </span>
             </div>
-            <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[11px] text-emerald-400 font-medium shrink-0">
+            <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-400/30 text-[11px] text-emerald-300 font-medium shrink-0 shadow-[0_0_10px_rgba(52,211,153,0.15)]">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Gemini 2.5 Flash</span>
+              <span>محرك ضياء الذكي الفائق</span>
             </div>
           </div>
 
@@ -1269,7 +1269,7 @@ export default function App() {
                 <div className="flex flex-wrap items-center justify-between gap-1 mb-1.5">
                   <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
                     <Key className="w-3.5 h-3.5 text-amber-400" />
-                    <span>مفتاح Gemini API خاص (اختياري):</span>
+                    <span>مفتاح API إضافي للمحرك الذكي (اختياري):</span>
                   </label>
                   <a
                     href="https://aistudio.google.com/app/apikey"
@@ -1277,7 +1277,7 @@ export default function App() {
                     rel="noreferrer"
                     className="text-[10px] text-emerald-400 hover:underline"
                   >
-                    الحصول على مفتاح مجاني من Google ↗
+                    الحصول على مفتاح إضافي مجاني ↗
                   </a>
                 </div>
                 <input

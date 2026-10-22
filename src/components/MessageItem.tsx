@@ -224,8 +224,8 @@ export const MessageItem: React.FC<MessageItemProps> = ({
             <Sparkles className="w-3 h-3 text-amber-300 animate-pulse" />
             <span>ضِيَاء</span>
           </span>
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
-            Gemini 2.5 Flash
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-medium">
+            نواة ضياء الذكية
           </span>
           <span aria-hidden="true">·</span>
           <span className="tabular-nums text-[11px] text-slate-500">
