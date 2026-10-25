@@ -919,7 +919,7 @@ export default function App() {
             </div>
             <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-400/30 text-[11px] text-emerald-300 font-medium shrink-0 shadow-[0_0_10px_rgba(52,211,153,0.15)]">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>محرك ضياء الذكي الفائق</span>
+              <span>omni-AI 1.0</span>
             </div>
           </div>
 
